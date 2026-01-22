@@ -22,3 +22,5 @@ syncPolicy:
     selfHeal: true
   syncOptions:
     - CreateNamespace=true
+  # ServerSideApply=true помогает с большими CRD (например, gatewayparameters)
+  serverSideApply: true

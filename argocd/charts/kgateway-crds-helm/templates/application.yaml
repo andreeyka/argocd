@@ -22,3 +22,6 @@ spec:
 {{- range .Values.syncPolicy.syncOptions }}
     - {{ . }}
 {{- end }}
+{{- if .Values.syncPolicy.serverSideApply }}
+    - ServerSideApply=true
+{{- end }}

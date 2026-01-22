@@ -33,6 +33,8 @@ llm/
 
 Application для установки CRD (Custom Resource Definitions) через Helm чарт из OCI registry.
 
+**Важно**: Использует `ServerSideApply=true` для работы с большими CRD (например, `gatewayparameters.gateway.kgateway.dev`), которые могут иметь аннотации больше 262144 байт.
+
 ### kgateway-helm
 
 Application для установки основного kgateway контроллера через Helm чарт с параметрами:
