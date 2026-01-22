@@ -102,39 +102,36 @@ kubectl apply -f argocd/applications/kgateway-llm-cloudru.yaml
 
 ### Настройка API ключа для LLM провайдера
 
-Application `kgateway-llm-cloudru` создает Secret из переменной окружения `FM_API_KEY`. Перед применением Application убедитесь, что переменная установлена:
+### Настройка API ключа для LLM провайдера
 
-```bash
-# Убедитесь, что переменная окружения FM_API_KEY установлена
-export FM_API_KEY="Bearer your-api-key"
-echo $FM_API_KEY  # Проверить значение
-```
-
-**Важно**: Secret `cloudru-secret` **не хранится в Git** по соображениям безопасности. Он создается вручную из переменной окружения `FM_API_KEY`.
-
-Перед применением Application `kgateway-llm-cloudru` создайте Secret:
+**Для тестирования**: API ключ передается напрямую в curl запросе через заголовок `Authorization`. Secret не требуется.
 
 ```bash
 # 1. Убедитесь, что переменная окружения FM_API_KEY установлена
 export FM_API_KEY="Bearer your-api-key"
 
-# 2. Создать Secret используя скрипт (рекомендуется)
-./scripts/create-cloudru-secret.sh
+# 2. Сделать port-forward к Gateway
+kubectl port-forward deployment/kgateway-proxy -n kgateway-system 8080:80
 
-# Или создать Secret вручную
+# 3. Тестовый запрос с передачей API ключа в заголовке
+curl "http://localhost:8080/cloudru" \
+  -H "content-type:application/json" \
+  -H "Authorization: $FM_API_KEY" \
+  -d '{
+    "model": "",
+    "messages": [
+      {"role": "user", "content": "Hello"}
+    ]
+  }'
+```
+
+**Для production**: Рекомендуется использовать Secret для хранения API ключа. Раскомментируйте секцию `auth` в `llm/cloudru-backend.yaml` и создайте Secret:
+
+```bash
 kubectl create secret generic cloudru-secret \
   -n kgateway-system \
   --from-literal="Authorization=$FM_API_KEY"
-
-# 3. Пометить Secret как управляемый вручную (чтобы ArgoCD не удалял его)
-kubectl label secret cloudru-secret -n kgateway-system \
-  app.kubernetes.io/managed-by=manual --overwrite
 ```
-
-**Важно**: 
-- Secret должен быть создан **до** применения Application `kgateway-llm-cloudru`
-- `AgentgatewayBackend` ссылается на этот Secret через `policies.auth.secretRef.name: cloudru-secret`
-- Secret не синхронизируется через ArgoCD и не будет удален при синхронизации
 
 ## Проверка в ArgoCD UI
 
