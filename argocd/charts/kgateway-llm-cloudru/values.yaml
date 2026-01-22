@@ -11,15 +11,16 @@ api:
 # Secret для API ключа
 secret:
   name: cloudru-secret
-  # ВАЖНО: Замените на реальный API ключ перед применением
-  # Можно использовать переменную окружения: export FM_API_KEY="Bearer your-key"
-  # Формат: "Bearer YOUR_API_KEY" или просто "YOUR_API_KEY"
-  apiKey: "Bearer YOUR_API_KEY_HERE"
+  # ВАЖНО: Используется переменная окружения FM_API_KEY
+  # Убедитесь, что переменная установлена: export FM_API_KEY="Bearer your-api-key"
+  # При применении через Helm используйте: --set secret.apiKey="$FM_API_KEY"
+  # Или создайте Secret вручную через скрипт: ./scripts/create-cloudru-secret.sh
+  apiKey: "Bearer YOUR_API_KEY_HERE" # Замените на $FM_API_KEY при применении
 
 # Backend конфигурация
 backend:
   name: cloudru
-  model: ""  # Модель будет указана в запросе
+  model: "Qwen/Qwen3-235B-A22B-Instruct-2507"
 
 # HTTPRoute конфигурация
 route:

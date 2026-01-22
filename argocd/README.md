@@ -8,6 +8,7 @@
 argocd/
 ├── applications/          # Готовые Application манифесты
 │   ├── kgateway-crds-helm.yaml
+│   ├── agentgateway-crds-helm.yaml
 │   ├── kgateway-helm.yaml
 │   ├── kgateway-gateway.yaml
 │   └── kgateway-llm-cloudru.yaml
@@ -31,9 +32,15 @@ llm/
 
 ### kgateway-crds-helm
 
-Application для установки CRD (Custom Resource Definitions) через Helm чарт из OCI registry.
+Application для установки CRD (Custom Resource Definitions) для kgateway через Helm чарт из OCI registry.
 
 **Важно**: Использует `ServerSideApply=true` для работы с большими CRD (например, `gatewayparameters.gateway.kgateway.dev`), которые могут иметь аннотации больше 262144 байт.
+
+### agentgateway-crds-helm
+
+Application для установки CRD для Agentgateway (включая `AgentgatewayBackend`) через Helm чарт `agentgateway-crds` из OCI registry.
+
+**Важно**: Этот Application необходим для работы LLM провайдеров, так как устанавливает CRD `agentgatewaybackends.agentgateway.dev`, который требуется для ресурса `AgentgatewayBackend`.
 
 ### kgateway-helm
 
@@ -80,8 +87,11 @@ git push -u origin main
 После того как код загружен в GitHub, примените все Applications:
 
 ```bash
-# Установка CRD
+# Установка CRD для kgateway
 kubectl apply -f argocd/applications/kgateway-crds-helm.yaml
+
+# Установка CRD для Agentgateway (необходимо для AgentgatewayBackend)
+kubectl apply -f argocd/applications/agentgateway-crds-helm.yaml
 
 # Установка основного контроллера
 kubectl apply -f argocd/applications/kgateway-helm.yaml
@@ -102,30 +112,30 @@ kubectl apply -f argocd/applications/kgateway-llm-cloudru.yaml
 
 ### Настройка API ключа для LLM провайдера
 
-Перед применением Application `kgateway-llm-cloudru` необходимо создать Secret с API ключом:
+Application `kgateway-llm-cloudru` создает Secret из переменной окружения `FM_API_KEY`. Перед применением Application убедитесь, что переменная установлена:
 
 ```bash
 # Убедитесь, что переменная окружения FM_API_KEY установлена
 export FM_API_KEY="Bearer your-api-key"
-
-# Создать Secret
-kubectl apply -f- <<EOF
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cloudru-secret
-  namespace: kgateway-system
-type: Opaque
-stringData:
-  Authorization: $FM_API_KEY
-EOF
+echo $FM_API_KEY  # Проверить значение
 ```
 
-Или использовать готовый скрипт:
+**Важно**:
 
-```bash
-./scripts/create-cloudru-secret.sh
-```
+- Secret создается через манифест `llm/cloudru-secret.yaml`, который использует переменную окружения `${FM_API_KEY}`
+- При применении через ArgoCD из Git репозитория, Secret нужно создать вручную через скрипт:
+
+  ```bash
+  ./scripts/create-cloudru-secret.sh
+  ```
+
+- Или применить манифест с подстановкой переменной:
+
+  ```bash
+  envsubst < llm/cloudru-secret.yaml | kubectl apply -f -
+  ```
+
+- `AgentgatewayBackend` ссылается на этот Secret через `policies.auth.secretRef.name: cloudru-secret`
 
 ## Проверка в ArgoCD UI
 
@@ -167,6 +177,8 @@ kubectl get svc -n kgateway-system kgateway-proxy
 
 # Проверка LLM Backend
 kubectl get agentgatewaybackend cloudru -n kgateway-system
+# Или если используется другой API:
+kubectl get backends.gateway.kgateway.dev cloudru -n kgateway-system
 
 # Проверка HTTPRoute
 kubectl get httproute cloudru -n kgateway-system
