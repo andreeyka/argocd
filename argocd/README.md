@@ -41,6 +41,9 @@ Application для установки основного kgateway контрол
 
 - `controller.image.pullPolicy: Always`
 - `controller.extraEnv.KGW_ENABLE_GATEWAY_API_EXPERIMENTAL_FEATURES: true`
+- Настройки для решения проблемы CrashLoopBackOff:
+  - Добавлен emptyDir volume `/tmp` для Envoy
+  - Отключен `readOnlyRootFilesystem` для gateway proxy
 
 ### kgateway-gateway
 
@@ -181,6 +184,18 @@ kubectl port-forward deployment/kgateway-proxy -n kgateway-system 8080:80
 ```
 
 После этого Gateway будет доступен локально на `http://localhost:8080`
+
+## Решение проблемы с gatewayparameters CRD
+
+Если Application `kgateway-crds-helm` не может установить CRD `gatewayparameters.gateway.kgateway.dev` из-за ошибки "metadata.annotations: Too long", используйте скрипт для ручной установки:
+
+```bash
+./scripts/install-gatewayparameters-crd.sh
+```
+
+Этот скрипт применяет CRD напрямую через `kubectl apply --server-side`, что обходит ограничение ArgoCD.
+
+После ручной установки CRD, Application `kgateway-crds-helm` должен синхронизироваться успешно (CRD будет помечен как `unchanged`).
 
 ## Тестирование LLM провайдера
 

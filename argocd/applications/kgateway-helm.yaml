@@ -17,6 +17,16 @@ spec:
           value: "Always"
         - name: controller.extraEnv.KGW_ENABLE_GATEWAY_API_EXPERIMENTAL_FEATURES
           value: "true"
+        - name: gatewayProxies.gatewayProxy.podTemplate.volumes[0].name
+          value: "tmp"
+        - name: gatewayProxies.gatewayProxy.podTemplate.volumes[0].emptyDir
+          value: "{}"
+        - name: gatewayProxies.gatewayProxy.podTemplate.volumeMounts[0].name
+          value: "tmp"
+        - name: gatewayProxies.gatewayProxy.podTemplate.volumeMounts[0].mountPath
+          value: "/tmp"
+        - name: gatewayProxies.gatewayProxy.podTemplate.securityContext.readOnlyRootFilesystem
+          value: "false"
     repoURL: ghcr.io/kgateway-dev/charts
     targetRevision: v2.2.0-main
   syncPolicy:
