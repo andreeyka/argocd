@@ -20,15 +20,6 @@ source:
       value: "Always"
     - name: controller.extraEnv.KGW_ENABLE_GATEWAY_API_EXPERIMENTAL_FEATURES
       value: "true"
-    # Добавляем временный том для Envoy (решает проблему с readOnlyRootFilesystem)
-    - name: gatewayProxies.gatewayProxy.podTemplate.volumes[0].name
-      value: "tmp"
-    - name: gatewayProxies.gatewayProxy.podTemplate.volumes[0].emptyDir
-      value: "{}"
-    - name: gatewayProxies.gatewayProxy.podTemplate.volumeMounts[0].name
-      value: "tmp"
-    - name: gatewayProxies.gatewayProxy.podTemplate.volumeMounts[0].mountPath
-      value: "/tmp"
 
 syncPolicy:
   automated:

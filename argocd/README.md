@@ -41,9 +41,6 @@ Application для установки основного kgateway контрол
 
 - `controller.image.pullPolicy: Always`
 - `controller.extraEnv.KGW_ENABLE_GATEWAY_API_EXPERIMENTAL_FEATURES: true`
-- Настройки для решения проблемы CrashLoopBackOff:
-  - Добавлен emptyDir volume `/tmp` для Envoy
-  - Отключен `readOnlyRootFilesystem` для gateway proxy
 
 ### kgateway-gateway
 
