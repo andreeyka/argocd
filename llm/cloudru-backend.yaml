@@ -1,0 +1,19 @@
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: cloudru
+  namespace: kgateway-system
+spec:
+  ai:
+    provider:
+      openai:
+        model: ""  # Модель будет указана в запросе
+      host: foundation-models.api.cloud.ru
+      port: 443
+      path: "/v1/chat/completions"
+  policies:
+    auth:
+      secretRef:
+        name: cloudru-secret
+    tls:
+      sni: foundation-models.api.cloud.ru

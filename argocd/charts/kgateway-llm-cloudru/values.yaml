@@ -1,0 +1,30 @@
+# Значения по умолчанию для LLM провайдера Cloud.ru
+namespace: kgateway-system
+
+# API конфигурация
+api:
+  host: foundation-models.api.cloud.ru
+  port: 443
+  path: "/v1/chat/completions"
+  sni: foundation-models.api.cloud.ru
+
+# Secret для API ключа
+secret:
+  name: cloudru-secret
+  # ВАЖНО: Замените на реальный API ключ перед применением
+  # Можно использовать переменную окружения: export FM_API_KEY="Bearer your-key"
+  # Формат: "Bearer YOUR_API_KEY" или просто "YOUR_API_KEY"
+  apiKey: "Bearer YOUR_API_KEY_HERE"
+
+# Backend конфигурация
+backend:
+  name: cloudru
+  model: ""  # Модель будет указана в запросе
+
+# HTTPRoute конфигурация
+route:
+  name: cloudru
+  path: /cloudru
+  gateway:
+    name: kgateway-proxy
+    namespace: kgateway-system

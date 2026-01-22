@@ -1,0 +1,24 @@
+# Значения по умолчанию для ArgoCD Application
+application:
+  name: kgateway-crds-helm
+  namespace: argocd
+  
+destination:
+  namespace: kgateway-system
+  server: https://kubernetes.default.svc
+
+project: default
+
+source:
+  chart: kgateway-crds
+  repoURL: ghcr.io/kgateway-dev/charts
+  targetRevision: v2.2.0-main
+  helm:
+    skipCrds: false
+
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+  syncOptions:
+    - CreateNamespace=true
