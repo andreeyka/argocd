@@ -8,17 +8,41 @@ spec:
     namespace: kgateway-system
     server: https://kubernetes.default.svc
   project: default
-  source:
-    chart: kgateway
-    helm:
-      skipCrds: false
-      parameters:
-        - name: controller.image.pullPolicy
-          value: "Always"
-        - name: controller.extraEnv.KGW_ENABLE_GATEWAY_API_EXPERIMENTAL_FEATURES
-          value: "true"
-    repoURL: ghcr.io/kgateway-dev/charts
-    targetRevision: v2.2.0-main
+  sources:
+    # Helm chart для контроллера kgateway
+    - chart: kgateway
+      helm:
+        skipCrds: false
+        parameters:
+          - name: controller.image.pullPolicy
+            value: "Always"
+          - name: controller.extraEnv.KGW_ENABLE_GATEWAY_API_EXPERIMENTAL_FEATURES
+            value: "true"
+      repoURL: ghcr.io/kgateway-dev/charts
+      targetRevision: v2.2.0-main
+    # Helm chart для контроллера agentgateway (создает proxy)
+    - chart: agentgateway
+      helm:
+        skipCrds: false
+        values: |
+          controller:
+            namespace: agentgateway-system
+          proxy:
+            namespace: agentgateway-system
+      repoURL: ghcr.io/kgateway-dev/charts
+      targetRevision: v2.2.0-main
+    # Gateway ресурсы из Git
+    - repoURL: https://github.com/andreeyka/argocd
+      targetRevision: main
+      path: gateway
+      directory:
+        recurse: false
+    # LLM ресурсы из Git
+    - repoURL: https://github.com/andreeyka/argocd
+      targetRevision: main
+      path: llm
+      directory:
+        recurse: false
   syncPolicy:
     automated:
       # Prune resources during auto-syncing (default is false)
