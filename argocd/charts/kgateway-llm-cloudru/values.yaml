@@ -27,5 +27,5 @@ route:
   name: cloudru
   path: /cloudru
   gateway:
-    name: kgateway-proxy
-    namespace: kgateway-system
+    name: agentgateway-proxy
+    namespace: agentgateway-system

@@ -1,8 +1,8 @@
 # Значения по умолчанию для Gateway
 gateway:
-  name: kgateway-proxy
-  namespace: kgateway-system
-  gatewayClassName: kgateway
+  name: agentgateway-proxy
+  namespace: agentgateway-system
+  gatewayClassName: agentgateway
 
 listeners:
   - protocol: HTTP

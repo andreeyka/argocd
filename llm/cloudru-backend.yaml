@@ -2,7 +2,7 @@ apiVersion: agentgateway.dev/v1alpha1
 kind: AgentgatewayBackend
 metadata:
   name: cloudru
-  namespace: kgateway-system
+  namespace: agentgateway-system
 spec:
   ai:
     provider:
