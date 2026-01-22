@@ -12,8 +12,9 @@ spec:
       port: 443
       path: "/v1/chat/completions"
   policies:
-    auth:
-      secretRef:
-        name: cloudru-secret
+    # auth убран для тестирования - API ключ передается напрямую в curl запросе
+    # auth:
+    #   secretRef:
+    #     name: cloudru-secret
     tls:
       sni: foundation-models.api.cloud.ru

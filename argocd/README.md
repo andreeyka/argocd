@@ -7,7 +7,6 @@
 ```
 argocd/
 ├── applications/          # Готовые Application манифесты
-│   ├── kgateway-crds-helm.yaml
 │   ├── agentgateway-crds-helm.yaml
 │   ├── kgateway-helm.yaml
 │   ├── kgateway-gateway.yaml
@@ -29,12 +28,6 @@ llm/
 ```
 
 ## Applications
-
-### kgateway-crds-helm
-
-Application для установки CRD (Custom Resource Definitions) для kgateway через Helm чарт из OCI registry.
-
-**Важно**: Использует `ServerSideApply=true` для работы с большими CRD (например, `gatewayparameters.gateway.kgateway.dev`), которые могут иметь аннотации больше 262144 байт.
 
 ### agentgateway-crds-helm
 
@@ -87,9 +80,6 @@ git push -u origin main
 После того как код загружен в GitHub, примените все Applications:
 
 ```bash
-# Установка CRD для kgateway
-kubectl apply -f argocd/applications/kgateway-crds-helm.yaml
-
 # Установка CRD для Agentgateway (необходимо для AgentgatewayBackend)
 kubectl apply -f argocd/applications/agentgateway-crds-helm.yaml
 
@@ -120,22 +110,31 @@ export FM_API_KEY="Bearer your-api-key"
 echo $FM_API_KEY  # Проверить значение
 ```
 
-**Важно**:
+**Важно**: Secret `cloudru-secret` **не хранится в Git** по соображениям безопасности. Он создается вручную из переменной окружения `FM_API_KEY`.
 
-- Secret создается через манифест `llm/cloudru-secret.yaml`, который использует переменную окружения `${FM_API_KEY}`
-- При применении через ArgoCD из Git репозитория, Secret нужно создать вручную через скрипт:
+Перед применением Application `kgateway-llm-cloudru` создайте Secret:
 
-  ```bash
-  ./scripts/create-cloudru-secret.sh
-  ```
+```bash
+# 1. Убедитесь, что переменная окружения FM_API_KEY установлена
+export FM_API_KEY="Bearer your-api-key"
 
-- Или применить манифест с подстановкой переменной:
+# 2. Создать Secret используя скрипт (рекомендуется)
+./scripts/create-cloudru-secret.sh
 
-  ```bash
-  envsubst < llm/cloudru-secret.yaml | kubectl apply -f -
-  ```
+# Или создать Secret вручную
+kubectl create secret generic cloudru-secret \
+  -n kgateway-system \
+  --from-literal="Authorization=$FM_API_KEY"
 
+# 3. Пометить Secret как управляемый вручную (чтобы ArgoCD не удалял его)
+kubectl label secret cloudru-secret -n kgateway-system \
+  app.kubernetes.io/managed-by=manual --overwrite
+```
+
+**Важно**: 
+- Secret должен быть создан **до** применения Application `kgateway-llm-cloudru`
 - `AgentgatewayBackend` ссылается на этот Secret через `policies.auth.secretRef.name: cloudru-secret`
+- Secret не синхронизируется через ArgoCD и не будет удален при синхронизации
 
 ## Проверка в ArgoCD UI
 
