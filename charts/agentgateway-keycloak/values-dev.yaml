@@ -11,6 +11,9 @@ keycloak:
         cpu: "1000m"
 postgresql:
   enabled: true
+  image:
+    repository: postgres
+    tag: "15"
   resources:
     requests:
       memory: "256Mi"
