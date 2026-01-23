@@ -17,6 +17,8 @@ a2a:
           value: "a2a-agent"
         - name: AGENT_URL
           value: "http://localhost:8000"
+        - name: COLUMNS
+          value: "200"
       #   - name: API_KEY
       #     valueFrom:
       #       secretKeyRef:
