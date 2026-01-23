@@ -47,6 +47,14 @@ spec:
         valueFiles:
           - values.yaml
           - values-prod.yaml
+    # JWT аутентификация из Git
+    - repoURL: https://github.com/andreeyka/argocd
+      targetRevision: main
+      path: charts/agentgateway-jwt-auth
+      helm:
+        valueFiles:
+          - values.yaml
+          - values-prod.yaml
   syncPolicy:
     automated:
       prune: true

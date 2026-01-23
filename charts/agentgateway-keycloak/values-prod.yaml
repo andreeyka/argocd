@@ -1,0 +1,11 @@
+# Production overrides for agentgateway-keycloak
+keycloak:
+  deployment:
+    replicas: 2
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "1000m"
+      limits:
+        memory: "2Gi"
+        cpu: "2000m"

@@ -1,0 +1,41 @@
+{{- if .Values.jwtAuth.enabled }}
+apiVersion: networking.agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata:
+  name: {{ .Values.jwtAuth.policy.name }}
+  namespace: {{ .Values.jwtAuth.policy.namespace }}
+spec:
+  targetRef:
+    group: {{ .Values.jwtAuth.targetRef.group }}
+    kind: {{ .Values.jwtAuth.targetRef.kind }}
+    name: {{ .Values.jwtAuth.targetRef.name }}
+    namespace: {{ .Values.jwtAuth.targetRef.namespace }}
+  traffic:
+    jwtAuthentication:
+      mode: {{ .Values.jwtAuth.policy.mode }}
+      providers:
+{{- range .Values.jwtAuth.policy.providers }}
+      - issuer: {{ .issuer | quote }}
+{{- if .audiences }}
+        audiences:
+{{- range .audiences }}
+          - {{ . | quote }}
+{{- end }}
+{{- end }}
+        jwks:
+{{- if .jwks.remote }}
+          remote:
+            jwksPath: {{ .jwks.remote.jwksPath | quote }}
+            cacheDuration: {{ .jwks.remote.cacheDuration | quote }}
+            backendRef:
+              group: {{ .jwks.remote.backendRef.group | quote }}
+              kind: {{ .jwks.remote.backendRef.kind }}
+              name: {{ .jwks.remote.backendRef.name }}
+              namespace: {{ .jwks.remote.backendRef.namespace }}
+              port: {{ .jwks.remote.backendRef.port }}
+{{- end }}
+{{- if .jwks.inline }}
+          inline: {{ .jwks.inline | quote }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,30 @@
+# Default values for agentgateway-keycloak
+keycloak:
+  enabled: true
+  namespace: keycloak
+  deployment:
+    name: keycloak
+    image: quay.io/keycloak/keycloak:latest
+    imagePullPolicy: IfNotPresent
+    replicas: 1
+    env:
+      - name: KEYCLOAK_ADMIN
+        value: "admin"
+      - name: KEYCLOAK_ADMIN_PASSWORD
+        value: "admin"
+      - name: KC_HEALTH_ENABLED
+        value: "true"
+      - name: KC_METRICS_ENABLED
+        value: "true"
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "500m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+  service:
+    name: keycloak
+    type: LoadBalancer
+    port: 8080
+    targetPort: 8080

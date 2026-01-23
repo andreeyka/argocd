@@ -1,0 +1,4 @@
+# Development overrides for agentgateway-jwt-auth
+jwtAuth:
+  policy:
+    mode: Strict

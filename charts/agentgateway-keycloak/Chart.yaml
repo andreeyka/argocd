@@ -1,0 +1,5 @@
+apiVersion: v2
+name: agentgateway-keycloak
+description: Keycloak deployment for agentgateway JWT authentication
+type: application
+version: 0.1.0

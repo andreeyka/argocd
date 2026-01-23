@@ -1,0 +1,51 @@
+{{- if .Values.keycloak.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.keycloak.deployment.name }}
+  namespace: {{ .Values.keycloak.namespace }}
+  labels:
+    app: keycloak
+spec:
+  replicas: {{ .Values.keycloak.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+      - name: keycloak
+        image: {{ .Values.keycloak.deployment.image }}
+        imagePullPolicy: {{ .Values.keycloak.deployment.imagePullPolicy }}
+        args:
+          - start-dev
+        env:
+{{- range .Values.keycloak.deployment.env }}
+          - name: {{ .name }}
+            value: {{ .value | quote }}
+{{- end }}
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: https
+          containerPort: 8443
+          protocol: TCP
+        resources:
+{{- toYaml .Values.keycloak.deployment.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+{{- end }}
