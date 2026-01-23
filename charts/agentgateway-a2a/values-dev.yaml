@@ -1,11 +1,6 @@
 # Переопределения для dev окружения
+# Примечание: Helm не мерджит вложенные структуры, поэтому если нужно переопределить только env,
+# нужно либо указать все поля deployment, либо использовать полное переопределение
 a2a:
   agent:
     enabled: true
-    deployment:
-      # Пример переменных окружения для dev
-      # env:
-      #   - name: LOG_LEVEL
-      #     value: "debug"
-      #   - name: ENVIRONMENT
-      #     value: "development"
