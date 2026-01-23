@@ -1,27 +1,21 @@
 {{- if .Values.mcp.enabled }}
-{{- range .Values.mcp.servers }}
-{{- $server := . }}
-{{- $route := $server.route | default dict }}
-{{- if $route.enabled | default true }}
+{{- if .Values.mcp.route }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: {{ $route.name | default $server.name }}
-  namespace: {{ $route.namespace | default ($server.namespace | default "agentgateway-system") }}
+  name: {{ .Values.mcp.route.name | default "mcp" }}
+  namespace: {{ .Values.mcp.route.namespace | default "agentgateway-system" }}
 spec:
   parentRefs:
-    - name: {{ ($route.gateway | default dict).name | default "agentgateway-proxy" }}
-      namespace: {{ ($route.gateway | default dict).namespace | default "agentgateway-system" }}
+    - name: {{ (.Values.mcp.route.gateway | default dict).name | default "agentgateway-proxy" }}
+      namespace: {{ (.Values.mcp.route.gateway | default dict).namespace | default "agentgateway-system" }}
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: {{ $route.path | default (printf "/mcp/%s" $server.name) }}
-      backendRefs:
-        - name: {{ $server.backend.name | default $server.name }}
+    # Multiplex MCP: один HTTPRoute для всех серверов
+    # Все серверы доступны через один путь /mcp
+    - backendRefs:
+        - name: {{ .Values.mcp.backend.name | default "mcp" }}
           group: agentgateway.dev
           kind: AgentgatewayBackend
-{{- end }}
 {{- end }}
 {{- end }}
