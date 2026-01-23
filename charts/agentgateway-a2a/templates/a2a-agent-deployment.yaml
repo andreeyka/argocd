@@ -25,6 +25,10 @@ spec:
             - containerPort: {{ $deployment.port | default 8000 }}
               protocol: TCP
           {{- if $deployment.args }}
+          command:
+            - python
+            - -m
+            - agent_example.main
           args:
             {{- range $deployment.args }}
             - {{ . | quote }}
