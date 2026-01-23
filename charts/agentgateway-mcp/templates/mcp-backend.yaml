@@ -1,0 +1,21 @@
+{{- if .Values.mcp.enabled }}
+{{- if .Values.mcp.backend }}
+---
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: {{ .Values.mcp.backend.name | default "mcp" }}
+  namespace: {{ .Values.mcp.backend.namespace | default "agentgateway-system" }}
+spec:
+  mcp:
+    targets:
+      {{- range .Values.mcp.servers }}
+      - name: {{ .name }}-{{ .port | default 8000 }}
+        selector:
+          services:
+            matchLabels:
+              app: {{ .name }}
+              mcp-server: ia-mcp
+      {{- end }}
+{{- end }}
+{{- end }}

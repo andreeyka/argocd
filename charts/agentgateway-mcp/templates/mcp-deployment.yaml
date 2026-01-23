@@ -1,0 +1,61 @@
+{{- if .Values.mcp.enabled }}
+{{- range .Values.mcp.servers }}
+{{- $server := . }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $server.name }}
+  namespace: {{ $server.namespace | default "agentgateway-system" }}
+  labels:
+    app: {{ $server.name }}
+    mcp-server: ia-mcp
+spec:
+  replicas: {{ $server.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ $server.name }}
+      mcp-server: ia-mcp
+  template:
+    metadata:
+      labels:
+        app: {{ $server.name }}
+        mcp-server: ia-mcp
+    spec:
+      containers:
+        - name: {{ $server.name }}
+          image: {{ $server.image | default "ia-mcp:latest" }}
+          imagePullPolicy: {{ $server.imagePullPolicy | default "IfNotPresent" }}
+          ports:
+            - containerPort: {{ $server.port | default 8000 }}
+              protocol: TCP
+          {{- if $server.env }}
+          env:
+            {{- range $server.env }}
+            - name: {{ .name }}
+              {{- if .value }}
+              value: {{ .value | quote }}
+              {{- end }}
+              {{- if .valueFrom }}
+              valueFrom:
+                {{- if .valueFrom.secretKeyRef }}
+                secretKeyRef:
+                  name: {{ .valueFrom.secretKeyRef.name }}
+                  key: {{ .valueFrom.secretKeyRef.key }}
+                  {{- if .valueFrom.secretKeyRef.optional }}
+                  optional: {{ .valueFrom.secretKeyRef.optional }}
+                  {{- end }}
+                {{- end }}
+                {{- if .valueFrom.configMapKeyRef }}
+                configMapKeyRef:
+                  name: {{ .valueFrom.configMapKeyRef.name }}
+                  key: {{ .valueFrom.configMapKeyRef.key }}
+                  {{- if .valueFrom.configMapKeyRef.optional }}
+                  optional: {{ .valueFrom.configMapKeyRef.optional }}
+                  {{- end }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+{{- end }}
+{{- end }}

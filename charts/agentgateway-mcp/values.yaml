@@ -1,0 +1,38 @@
+# Default values for agentgateway-mcp
+# Этот файл используется как базовый values.yaml для Helm чарта
+# Для переопределений используйте values-dev.yaml или values-prod.yaml
+
+# Конфигурация для MCP серверов (Multiplex MCP)
+mcp:
+  enabled: true
+  # Список MCP серверов для развертывания
+  servers:
+    - name: ia-mcp-1
+      namespace: agentgateway-system
+      image: ia-mcp:latest
+      imagePullPolicy: Always
+      port: 8000
+      replicas: 1
+    - name: ia-mcp-2
+      namespace: agentgateway-system
+      image: ia-mcp:latest
+      imagePullPolicy: Always
+      port: 8000
+      replicas: 1
+    - name: ia-mcp-3
+      namespace: agentgateway-system
+      image: ia-mcp:latest
+      imagePullPolicy: Always
+      port: 8000
+      replicas: 1
+  # Конфигурация AgentgatewayBackend для Multiplex MCP
+  backend:
+    name: mcp
+    namespace: agentgateway-system
+  # Конфигурация HTTPRoute для маршрутизации к MCP
+  route:
+    name: mcp
+    namespace: agentgateway-system
+    gateway:
+      name: agentgateway-proxy
+      namespace: agentgateway-system
