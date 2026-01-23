@@ -22,7 +22,7 @@ spec:
           image: {{ $deployment.image | default "agent-example:latest" }}
           imagePullPolicy: {{ $deployment.imagePullPolicy | default "IfNotPresent" }}
           ports:
-            - containerPort: {{ $deployment.port | default 9090 }}
+            - containerPort: {{ $deployment.port | default 8000 }}
               protocol: TCP
           {{- if $deployment.env }}
           env:

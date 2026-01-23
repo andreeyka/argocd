@@ -9,7 +9,7 @@ a2a:
       namespace: agentgateway-system
       image: agent-example:latest
       imagePullPolicy: IfNotPresent
-      port: 9090
+      port: 8000
       replicas: 1
       # Пример использования переменных окружения:
       env:
@@ -19,24 +19,15 @@ a2a:
           value: "http://localhost:8000"
         - name: COLUMNS
           value: "200"
-      #   - name: API_KEY
-      #     valueFrom:
-      #       secretKeyRef:
-      #         name: a2a-secret
-      #         key: api-key
-      #   - name: CONFIG_MAP_VALUE
-      #     valueFrom:
-      #       configMapKeyRef:
-      #         name: a2a-config
-      #         key: config-value
     service:
       name: a2a-agent
       namespace: agentgateway-system
-      port: 9090
-      targetPort: 9090
+      port: 8000
+      targetPort: 8000
     route:
       name: a2a
       namespace: agentgateway-system
+      path: /a2a/agent1
       gateway:
         name: agentgateway-proxy
         namespace: agentgateway-system
