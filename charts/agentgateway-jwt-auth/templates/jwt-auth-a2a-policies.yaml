@@ -2,7 +2,7 @@
 {{- range .Values.jwtAuth.a2aPolicies.httpRoutes }}
 {{- $namespace := .namespace | default $.Values.jwtAuth.a2aPolicies.namespace }}
 ---
-apiVersion: networking.agentgateway.dev/v1alpha1
+apiVersion: agentgateway.dev/v1alpha1
 kind: AgentgatewayPolicy
 metadata:
   name: jwt-auth-{{ .name }}

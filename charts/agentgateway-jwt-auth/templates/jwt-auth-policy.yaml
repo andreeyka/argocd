@@ -1,6 +1,6 @@
 {{- if and .Values.jwtAuth.enabled .Values.jwtAuth.gatewayPolicy.enabled }}
 ---
-apiVersion: networking.agentgateway.dev/v1alpha1
+apiVersion: agentgateway.dev/v1alpha1
 kind: AgentgatewayPolicy
 metadata:
   name: {{ .Values.jwtAuth.gatewayPolicy.name }}
