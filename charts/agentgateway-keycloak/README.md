@@ -64,6 +64,34 @@ postgresql:
 
 **Внимание:** H2 база данных очень медленная при инициализации и не рекомендуется для production.
 
+### Проблемы с загрузкой образа PostgreSQL
+
+Если возникают проблемы с загрузкой образа PostgreSQL (например, "short read: expected bytes but got 0"), попробуйте:
+
+1. Использовать другой тег образа в `values.yaml`:
+
+```yaml
+postgresql:
+  image:
+    repository: postgres
+    tag: "15"  # или "15.5", "14", "14-alpine"
+```
+
+1. Использовать другой репозиторий:
+
+```yaml
+postgresql:
+  image:
+    repository: quay.io/postgres/postgres
+    tag: "15-alpine"
+```
+
+1. Проверить доступность образа:
+
+```bash
+docker pull postgres:15
+```
+
 ## Production
 
 Для production окружения используйте `values-prod.yaml`, который настраивает:
