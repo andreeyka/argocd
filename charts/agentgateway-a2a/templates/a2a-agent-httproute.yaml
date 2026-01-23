@@ -12,6 +12,30 @@ spec:
       namespace: {{ ($route.gateway | default dict).namespace | default "agentgateway-system" }}
   rules:
     {{- if $route.path }}
+    # Для точного пути /a2a/agent1 -> /.well-known/agent-card.json
+    - matches:
+        {{- if $route.methods }}
+        {{- range $route.methods }}
+        - path:
+            type: Exact
+            value: {{ $route.path | quote }}
+          method: {{ . }}
+        {{- end }}
+        {{- else }}
+        - path:
+            type: Exact
+            value: {{ $route.path | quote }}
+        {{- end }}
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /.well-known/agent-card.json
+      backendRefs:
+        - name: {{ $service.name | default "a2a-agent" }}
+          port: {{ $service.port | default 8000 }}
+    # Для всех остальных путей - отрезаем префикс /a2a/agent1 через ReplacePrefixMatch
     - matches:
         {{- if $route.methods }}
         {{- range $route.methods }}
