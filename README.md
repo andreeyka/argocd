@@ -30,8 +30,8 @@
 │       ├── values-dev.yaml      # Переопределения для dev
 │       └── values-prod.yaml     # Переопределения для prod
 ├── scripts/                     # Вспомогательные скрипты
-│   ├── agentgateway-port-forward-proxy.sh
-│   ├── agentgateway-port-forward-ui.sh
+│   ├── agentgateway-port-forward-all.sh
+│   ├── agentgateway-port-forward-stop.sh
 │   └── install-argocd.sh
 ├── pyproject.toml               # Python зависимости (uv)
 ├── uv.lock                      # Заблокированные версии зависимостей
@@ -191,35 +191,26 @@ llm:
 
 ## Полезные скрипты
 
-### Port-forward к proxy
+### Запуск всех port-forward'ов
 
-Для доступа к agentgateway proxy на локальной машине:
-
-```bash
-./scripts/agentgateway-port-forward-proxy.sh
-```
-
-Gateway будет доступен на `http://localhost:80` (проброс с порта 8080 внутри кластера).
-
-### Port-forward к Keycloak
-
-Для доступа к Keycloak на локальной машине:
+Для одновременного запуска всех port-forward'ов (Proxy, Keycloak, UI):
 
 ```bash
-./scripts/agentgateway-port-forward-keycloak.sh
+./scripts/agentgateway-port-forward-all.sh
 ```
 
-Keycloak будет доступен на `http://localhost:8080`.
+Этот скрипт запустит все port-forward'ы в фоновом режиме:
+- Proxy: `http://localhost:8000`
+- Keycloak: `http://localhost:8080`
+- Control plane admin UI: `http://localhost:9095`
+- Proxy UI: `http://localhost:15000/ui`
+- ArgoCD: `https://localhost:9999` (username: `admin`, password: `gateway`)
 
-### Port-forward к UI
-
-Для доступа к UI для отладки:
+Для остановки всех port-forward'ов:
 
 ```bash
-./scripts/agentgateway-port-forward-ui.sh
+./scripts/agentgateway-port-forward-stop.sh
 ```
-
-UI будет доступен на портах 9095 и 15000.
 
 ## Дополнительная информация
 

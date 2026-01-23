@@ -1,19 +1,20 @@
-{{- if and .Values.jwtAuth.enabled .Values.jwtAuth.gatewayPolicy.enabled }}
+{{- if and .Values.jwtAuth.enabled .Values.jwtAuth.a2aPolicies.enabled }}
+{{- range .Values.jwtAuth.a2aPolicies.httpRoutes }}
 ---
 apiVersion: networking.agentgateway.dev/v1alpha1
 kind: AgentgatewayPolicy
 metadata:
-  name: {{ .Values.jwtAuth.gatewayPolicy.name }}
-  namespace: {{ .Values.jwtAuth.gatewayPolicy.namespace }}
+  name: jwt-auth-{{ .name }}
+  namespace: {{ .namespace | default .Values.jwtAuth.a2aPolicies.namespace }}
 spec:
   targetRef:
-    group: {{ .Values.jwtAuth.targetRef.group }}
-    kind: {{ .Values.jwtAuth.targetRef.kind }}
-    name: {{ .Values.jwtAuth.targetRef.name }}
-    namespace: {{ .Values.jwtAuth.targetRef.namespace }}
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: {{ .name }}
+    namespace: {{ .namespace | default .Values.jwtAuth.a2aPolicies.namespace }}
   traffic:
     jwtAuthentication:
-      mode: {{ .Values.jwtAuth.gatewayPolicy.mode }}
+      mode: {{ .Values.jwtAuth.a2aPolicies.mode }}
       providers:
 {{- range .Values.jwtAuth.providers }}
       - issuer: {{ .issuer | quote }}
@@ -37,6 +38,7 @@ spec:
 {{- end }}
 {{- if .jwks.inline }}
           inline: {{ .jwks.inline | quote }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

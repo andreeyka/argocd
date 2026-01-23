@@ -1,24 +1,41 @@
 # Default values for agentgateway-jwt-auth
 jwtAuth:
   enabled: true
-  policy:
+  # Политика для Gateway (опционально)
+  gatewayPolicy:
+    enabled: false
     name: jwt-auth-policy
     namespace: agentgateway-system
-    mode: Strict  # Strict, Optional, or Permissive
-    providers:
-      - issuer: "http://keycloak.keycloak.svc.cluster.local:8080/realms/master"
-        audiences:
-          - "my-application"
-        jwks:
-          remote:
-            jwksPath: "/realms/master/protocol/openid-connect/certs"
-            cacheDuration: "5m"
-            backendRef:
-              group: ""
-              kind: Service
-              name: keycloak
-              namespace: keycloak
-              port: 8080
+    mode: Strict # Strict, Optional, or Permissive
+  # Политики для a2a агентов
+  a2aPolicies:
+    enabled: true
+    namespace: agentgateway-system
+    mode: Strict # Strict, Optional, or Permissive
+    # Список HTTPRoute для защиты
+    httpRoutes:
+      - name: a2a
+        namespace: agentgateway-system
+      - name: a2a-agent2
+        namespace: agentgateway-system
+      - name: a2a-agent3
+        namespace: agentgateway-system
+  # Общие настройки провайдеров JWT
+  providers:
+    - issuer: "http://keycloak.keycloak.svc.cluster.local:8080/realms/master"
+      audiences:
+        - "my-application"
+      jwks:
+        remote:
+          jwksPath: "/realms/master/protocol/openid-connect/certs"
+          cacheDuration: "5m"
+          backendRef:
+            group: ""
+            kind: Service
+            name: keycloak
+            namespace: keycloak
+            port: 8080
+  # TargetRef для Gateway политики (если gatewayPolicy.enabled = true)
   targetRef:
     group: gateway.networking.k8s.io
     kind: Gateway

@@ -4,28 +4,12 @@
 
 set -e
 
-# Получаем URL Keycloak из сервиса
+# Ожидаем готовности Keycloak
 echo "Ожидание готовности Keycloak..."
 kubectl wait --for=condition=ready pod -l app=keycloak -n keycloak --timeout=300s
 
-# Получаем endpoint Keycloak
-ENDPOINT_KEYCLOAK=$(kubectl -n keycloak get service keycloak -o jsonpath='{.status.loadBalancer.ingress[0].ip}{.status.loadBalancer.ingress[0].hostname}'):8080
-
-# Если LoadBalancer не доступен, используем port-forward
-if [ -z "$ENDPOINT_KEYCLOAK" ] || [ "$ENDPOINT_KEYCLOAK" = ":8080" ]; then
-  echo "LoadBalancer не доступен, используем port-forward..."
-  kubectl port-forward -n keycloak svc/keycloak 8080:8080 &
-  PF_PID=$!
-  sleep 5
-  ENDPOINT_KEYCLOAK="localhost:8080"
-  KEYCLOAK_URL="http://${ENDPOINT_KEYCLOAK}"
-  trap "kill $PF_PID" EXIT
-else
-  HOST_KEYCLOAK=$(echo ${ENDPOINT_KEYCLOAK} | cut -d: -f1)
-  PORT_KEYCLOAK=$(echo ${ENDPOINT_KEYCLOAK} | cut -d: -f2)
-  KEYCLOAK_URL="http://${ENDPOINT_KEYCLOAK}"
-fi
-
+# Используем Keycloak через localhost (предполагается, что port-forward уже запущен отдельно)
+KEYCLOAK_URL="http://localhost:8080"
 echo "Keycloak URL: ${KEYCLOAK_URL}"
 
 # Получаем admin token
@@ -61,11 +45,11 @@ curl -s -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" -X POST -H "Content-Type: a
 
 # Создаем первого пользователя
 echo "Создание пользователя user1..."
-curl -s -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" -X POST -H "Content-Type: application/json" -d '{"username": "user1", "email": "[email protected]", "firstName": "Alice", "lastName": "Doe", "enabled": true, "attributes": {"group": "users"}, "credentials": [{"type": "password", "value": "password", "temporary": false}]}' "${KEYCLOAK_URL}/admin/realms/master/users"
+curl -s -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" -X POST -H "Content-Type: application/json" -d '{"username": "user1", "email": "user1@example.com", "firstName": "Alice", "lastName": "Doe", "enabled": true, "attributes": {"group": "users"}, "credentials": [{"type": "password", "value": "password", "temporary": false}]}' "${KEYCLOAK_URL}/admin/realms/master/users"
 
 # Создаем второго пользователя
 echo "Создание пользователя user2..."
-curl -s -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" -X POST -H "Content-Type: application/json" -d '{"username": "user2", "email": "[email protected]", "firstName": "Bob", "lastName": "Doe", "enabled": true, "attributes": {"group": "users"}, "credentials": [{"type": "password", "value": "password", "temporary": false}]}' "${KEYCLOAK_URL}/admin/realms/master/users"
+curl -s -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" -X POST -H "Content-Type: application/json" -d '{"username": "user2", "email": "user2@example.com", "firstName": "Bob", "lastName": "Doe", "enabled": true, "attributes": {"group": "users"}, "credentials": [{"type": "password", "value": "password", "temporary": false}]}' "${KEYCLOAK_URL}/admin/realms/master/users"
 
 # Удаляем trusted-hosts политику (только для тестирования)
 echo "Удаление trusted-hosts политики..."
