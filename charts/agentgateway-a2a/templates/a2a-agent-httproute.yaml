@@ -19,8 +19,8 @@ spec:
       backendRefs:
         - name: {{ $service.name | default "a2a-agent" }}
           port: {{ $service.port | default 8000 }}
-    - backendRefs:
     {{- else }}
+    - backendRefs:
         - name: {{ $service.name | default "a2a-agent" }}
           port: {{ $service.port | default 8000 }}
     {{- end }}
