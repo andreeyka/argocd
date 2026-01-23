@@ -19,7 +19,7 @@ mcp:
       image: ia-mcp:latest
       imagePullPolicy: Always
       port: 8000
-      replicas: 1
+      replicas: 5
       # Путь MCP endpoint на самом сервере (опционально, по умолчанию /mcp для streamable-http)
       # mcpPath: /mcp
       env:
@@ -35,7 +35,7 @@ mcp:
       image: ia-mcp:latest
       imagePullPolicy: Always
       port: 8000
-      replicas: 1
+      replicas: 5
       env:
         - name: MCP_HOST
           value: "0.0.0.0"
@@ -48,7 +48,7 @@ mcp:
       image: ia-mcp:latest
       imagePullPolicy: Always
       port: 8000
-      replicas: 1
+      replicas: 5
       env:
         - name: MCP_HOST
           value: "0.0.0.0"
