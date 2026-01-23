@@ -199,7 +199,7 @@ llm:
 ./scripts/agentgateway-port-forward-proxy.sh
 ```
 
-Gateway будет доступен на `http://localhost:8080`.
+Gateway будет доступен на `http://localhost:80`.
 
 ### Port-forward к UI
 

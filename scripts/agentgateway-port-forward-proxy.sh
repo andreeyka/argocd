@@ -3,8 +3,8 @@
 
 NAMESPACE="agentgateway-system"
 DEPLOYMENT="agentgateway-proxy"
-LOCAL_PORT=8080
-REMOTE_PORT=80
+LOCAL_PORT=80
+REMOTE_PORT=8080
 
 echo "🔧 Запуск port-forward для $DEPLOYMENT в namespace $NAMESPACE..."
 echo "✅ Gateway будет доступен на http://localhost:$LOCAL_PORT"
