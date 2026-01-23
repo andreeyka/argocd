@@ -11,17 +11,7 @@ spec:
     - name: {{ ($route.gateway | default dict).name | default "agentgateway-proxy" }}
       namespace: {{ ($route.gateway | default dict).namespace | default "agentgateway-system" }}
   rules:
-    {{- if $route.path }}
-    - matches:
-        - path:
-            type: PathPrefix
-            value: {{ $route.path | quote }}
-      backendRefs:
-        - name: {{ $service.name | default "a2a-agent" }}
-          port: {{ $service.port | default 8000 }}
-    {{- else }}
     - backendRefs:
         - name: {{ $service.name | default "a2a-agent" }}
           port: {{ $service.port | default 8000 }}
-    {{- end }}
 {{- end }}
