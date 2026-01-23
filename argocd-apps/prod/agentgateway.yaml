@@ -39,6 +39,14 @@ spec:
         valueFiles:
           - values.yaml
           - values-prod.yaml
+    # MCP серверы из Git
+    - repoURL: https://github.com/andreeyka/argocd
+      targetRevision: main
+      path: charts/agentgateway-mcp
+      helm:
+        valueFiles:
+          - values.yaml
+          - values-prod.yaml
   syncPolicy:
     automated:
       prune: true
