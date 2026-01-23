@@ -16,7 +16,6 @@ spec:
             matchLabels:
               app: {{ .name }}
               mcp-server: ia-mcp
-        protocol: streamableHttp
       {{- end }}
 {{- end }}
 {{- end }}
