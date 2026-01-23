@@ -28,3 +28,21 @@ keycloak:
     type: LoadBalancer
     port: 8080
     targetPort: 8080
+postgresql:
+  enabled: true
+  name: postgresql
+  image:
+    repository: postgres
+    tag: "15-alpine"
+    pullPolicy: IfNotPresent
+  auth:
+    username: keycloak
+    password: keycloak
+    database: keycloak
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"

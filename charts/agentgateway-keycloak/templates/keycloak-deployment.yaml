@@ -16,17 +16,50 @@ spec:
       labels:
         app: keycloak
     spec:
+      {{- if .Values.postgresql.enabled }}
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.36
+        command: ['sh', '-c', 'until nc -z {{ .Values.postgresql.name }} 5432; do echo waiting for postgres; sleep 2; done;']
+      {{- end }}
       containers:
       - name: keycloak
         image: {{ .Values.keycloak.deployment.image }}
         imagePullPolicy: {{ .Values.keycloak.deployment.imagePullPolicy }}
         args:
+        {{- if .Values.postgresql.enabled }}
+          - start
+        {{- else }}
           - start-dev
+        {{- end }}
         env:
 {{- range .Values.keycloak.deployment.env }}
           - name: {{ .name }}
             value: {{ .value | quote }}
 {{- end }}
+        {{- if .Values.postgresql.enabled }}
+        - name: KC_DB
+          value: postgres
+        - name: KC_DB_URL_HOST
+          value: {{ .Values.postgresql.name }}
+        - name: KC_DB_URL_PORT
+          value: "5432"
+        - name: KC_DB_URL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-db
+              key: database
+        - name: KC_DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-db
+              key: username
+        - name: KC_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-db
+              key: password
+        {{- end }}
         ports:
         - name: http
           containerPort: 8080
