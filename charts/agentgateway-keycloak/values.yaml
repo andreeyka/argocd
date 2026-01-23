@@ -33,14 +33,14 @@ postgresql:
   name: postgresql
   image:
     repository: postgres
-    tag: "15.5"
+    tag: "15"
     pullPolicy: IfNotPresent
   # Альтернативные варианты образа при проблемах с загрузкой:
-  # repository: "quay.io/postgres/postgres"
-  # tag: "15-alpine"
+  # repository: "postgres"
+  # tag: "14"
   # или
   # repository: "postgres"
-  # tag: "15"
+  # tag: "15.5"
   auth:
     username: keycloak
     password: keycloak
