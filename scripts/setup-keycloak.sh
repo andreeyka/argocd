@@ -23,25 +23,60 @@ fi
 
 echo "Admin token получен"
 
-# Создаем initial token для регистрации клиента
-echo "Создание initial token для регистрации клиента..."
-read -r client token <<<$(curl -s -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" -X POST -H "Content-Type: application/json" -d '{"expiration": 0, "count": 1}' "${KEYCLOAK_URL}/admin/realms/master/clients-initial-access" | jq -r '[.id, .token] | @tsv')
-KEYCLOAK_CLIENT=${client}
+# Используем фиксированные Client ID / Secret для тестов (можно переопределить через env)
+KEYCLOAK_CLIENT=${KEYCLOAK_CLIENT:-agentgateway}
+KEYCLOAK_SECRET=${KEYCLOAK_SECRET:-QlCjfI6prc8ncTdzF05xAv6KZBlEAPLt}
 echo "Client ID: ${KEYCLOAK_CLIENT}"
 
-# Регистрируем клиента
-echo "Регистрация клиента..."
-read -r id secret <<<$(curl -s -k -X POST -d "{ \"clientId\": \"${KEYCLOAK_CLIENT}\" }" -H "Content-Type:application/json" -H "Authorization: bearer ${token}" "${KEYCLOAK_URL}/realms/master/clients-registrations/default" | jq -r '[.id, .secret] | @tsv')
-KEYCLOAK_SECRET=${secret}
-echo "Client Secret: ${KEYCLOAK_SECRET}"
+# Ищем клиента по clientId
+CLIENT_INTERNAL_ID=$(curl -s -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" \
+  "${KEYCLOAK_URL}/admin/realms/master/clients?clientId=${KEYCLOAK_CLIENT}" | jq -r '.[0].id')
 
-# Настраиваем клиента
-echo "Настройка клиента..."
-curl -s -k -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" -X PUT -H "Content-Type: application/json" -d '{"serviceAccountsEnabled": true, "directAccessGrantsEnabled": true, "authorizationServicesEnabled": true, "redirectUris": ["*"]}' "${KEYCLOAK_URL}/admin/realms/master/clients/${id}"
+if [ -z "$CLIENT_INTERNAL_ID" ] || [ "$CLIENT_INTERNAL_ID" = "null" ]; then
+  echo "Клиент не найден, создаем..."
+  curl -s -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" -X POST -H "Content-Type: application/json" \
+    -d "{\"clientId\": \"${KEYCLOAK_CLIENT}\", \"secret\": \"${KEYCLOAK_SECRET}\", \"protocol\": \"openid-connect\", \"publicClient\": false, \"serviceAccountsEnabled\": true, \"directAccessGrantsEnabled\": true, \"authorizationServicesEnabled\": true, \"redirectUris\": [\"*\"]}" \
+    "${KEYCLOAK_URL}/admin/realms/master/clients"
+  CLIENT_INTERNAL_ID=$(curl -s -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" \
+    "${KEYCLOAK_URL}/admin/realms/master/clients?clientId=${KEYCLOAK_CLIENT}" | jq -r '.[0].id')
+else
+  echo "Клиент найден, обновляем..."
+  # Получаем текущую конфигурацию клиента
+  CURRENT_CONFIG=$(curl -s -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" \
+    "${KEYCLOAK_URL}/admin/realms/master/clients/${CLIENT_INTERNAL_ID}")
+  
+  # Обновляем конфигурацию, сохраняя существующие поля и добавляя нужные
+  UPDATED_CONFIG=$(echo "$CURRENT_CONFIG" | jq '. + {
+    "directAccessGrantsEnabled": true,
+    "serviceAccountsEnabled": true,
+    "authorizationServicesEnabled": true,
+    "redirectUris": ["*"],
+    "publicClient": false
+  }')
+  
+  curl -s -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" -X PUT -H "Content-Type: application/json" \
+    -d "$UPDATED_CONFIG" \
+    "${KEYCLOAK_URL}/admin/realms/master/clients/${CLIENT_INTERNAL_ID}"
+  
+  echo "Настройки клиента обновлены"
+fi
+
+if [ -z "$CLIENT_INTERNAL_ID" ] || [ "$CLIENT_INTERNAL_ID" = "null" ]; then
+  echo "Ошибка: не удалось получить ID клиента"
+  exit 1
+fi
+
+ACTUAL_SECRET=$(curl -s -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" \
+  "${KEYCLOAK_URL}/admin/realms/master/clients/${CLIENT_INTERNAL_ID}/client-secret" | jq -r .value)
+if [ -n "$ACTUAL_SECRET" ] && [ "$ACTUAL_SECRET" != "null" ] && [ "$ACTUAL_SECRET" != "$KEYCLOAK_SECRET" ]; then
+  echo "Предупреждение: секрет в Keycloak отличается от заданного. Используется фактический секрет."
+  KEYCLOAK_SECRET=$ACTUAL_SECRET
+fi
+echo "Client Secret: ${KEYCLOAK_SECRET}"
 
 # Добавляем group атрибут в JWT токен
 echo "Добавление group атрибута в JWT токен..."
-curl -s -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" -X POST -H "Content-Type: application/json" -d '{"name": "group", "protocol": "openid-connect", "protocolMapper": "oidc-usermodel-attribute-mapper", "config": {"claim.name": "group", "jsonType.label": "String", "user.attribute": "group", "id.token.claim": "true", "access.token.claim": "true"}}' "${KEYCLOAK_URL}/admin/realms/master/clients/${id}/protocol-mappers/models"
+curl -s -H "Authorization: Bearer ${KEYCLOAK_TOKEN}" -X POST -H "Content-Type: application/json" -d '{"name": "group", "protocol": "openid-connect", "protocolMapper": "oidc-usermodel-attribute-mapper", "config": {"claim.name": "group", "jsonType.label": "String", "user.attribute": "group", "id.token.claim": "true", "access.token.claim": "true"}}' "${KEYCLOAK_URL}/admin/realms/master/clients/${CLIENT_INTERNAL_ID}/protocol-mappers/models"
 
 # Создаем первого пользователя
 echo "Создание пользователя user1..."

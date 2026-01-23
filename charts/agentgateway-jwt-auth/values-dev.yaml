@@ -2,3 +2,18 @@
 jwtAuth:
   policy:
     mode: Strict
+  # Для локального тестирования используем localhost issuer
+  providers:
+    - issuer: "http://localhost:8080/realms/master"
+      audiences:
+        - "my-application"
+      jwks:
+        remote:
+          jwksPath: "/realms/master/protocol/openid-connect/certs"
+          cacheDuration: "5m"
+          backendRef:
+            group: ""
+            kind: Service
+            name: keycloak
+            namespace: keycloak
+            port: 8080
