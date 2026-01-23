@@ -23,8 +23,7 @@ jwtAuth:
   # Общие настройки провайдеров JWT
   providers:
     - issuer: "http://keycloak.keycloak.svc.cluster.local:8080/realms/master"
-      audiences:
-        - "my-application"
+      # audiences не указаны - проверка отключена (можно указать список для строгой проверки)
       jwks:
         remote:
           jwksPath: "/realms/master/protocol/openid-connect/certs"
