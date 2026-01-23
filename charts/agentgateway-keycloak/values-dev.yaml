@@ -1,4 +1,6 @@
 # Development overrides for agentgateway-keycloak
+# ВРЕМЕННО отключаем PostgreSQL из-за проблем с загрузкой образов
+# После решения проблемы с сетью/Docker Hub включите обратно
 keycloak:
   deployment:
     replicas: 1
@@ -10,10 +12,15 @@ keycloak:
         memory: "1Gi"
         cpu: "1000m"
 postgresql:
-  enabled: true
-  image:
-    repository: postgres
-    tag: "15"
+  enabled: false  # Временно отключено из-за проблем с загрузкой образов
+  # После решения проблемы включите обратно:
+  # enabled: true
+  # image:
+  #   repository: postgres
+  #   tag: "15"
+  # initImage:
+  #   repository: busybox
+  #   tag: "latest"
   resources:
     requests:
       memory: "256Mi"

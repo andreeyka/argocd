@@ -19,7 +19,7 @@ spec:
       {{- if .Values.postgresql.enabled }}
       initContainers:
       - name: wait-for-postgres
-        image: busybox:1.35
+        image: {{ .Values.postgresql.initImage.repository }}:{{ .Values.postgresql.initImage.tag }}
         command: ['sh', '-c', 'until nc -z {{ .Values.postgresql.name }} 5432; do echo waiting for postgres; sleep 2; done;']
       {{- end }}
       containers:
