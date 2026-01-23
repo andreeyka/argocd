@@ -4,32 +4,93 @@
 a2a:
   agent:
     enabled: true
-    deployment:
-      name: a2a-agent
-      namespace: agentgateway-system
-      image: agent-example:latest
-      imagePullPolicy: Always
-      port: 8000
-      replicas: 1
-      # Пример использования переменных окружения:
-      env:
-        - name: AGENT_NAME
-          value: "a2a-agent"
-        - name: AGENT_URL
-          value: "http://localhost:8000"
-        - name: COLUMNS
-          value: "200"
-        - name: AGENT_HOST
-          value: "0.0.0.0"
-    service:
-      name: a2a-agent
-      namespace: agentgateway-system
-      port: 8000
-      targetPort: 8000
-    route:
-      name: a2a
-      namespace: agentgateway-system
-      path: /a2a/agent1
-      gateway:
-        name: agentgateway-proxy
-        namespace: agentgateway-system
+    # Список агентов для развертывания
+    agents:
+      - name: agent1
+        deployment:
+          name: a2a-agent
+          namespace: agentgateway-system
+          image: agent-example:latest
+          imagePullPolicy: Always
+          port: 8000
+          replicas: 1
+          # Пример использования переменных окружения:
+          env:
+            - name: AGENT_NAME
+              value: "a2a-agent"
+            - name: AGENT_URL
+              value: "http://localhost:8000"
+            - name: COLUMNS
+              value: "200"
+            - name: AGENT_HOST
+              value: "0.0.0.0"
+        service:
+          name: a2a-agent
+          namespace: agentgateway-system
+          port: 8000
+          targetPort: 8000
+        route:
+          name: a2a
+          namespace: agentgateway-system
+          path: /a2a/agent1
+          gateway:
+            name: agentgateway-proxy
+            namespace: agentgateway-system
+      - name: agent2
+        deployment:
+          name: a2a-agent2
+          namespace: agentgateway-system
+          image: agent-example:latest
+          imagePullPolicy: Always
+          port: 8000
+          replicas: 1
+          env:
+            - name: AGENT_NAME
+              value: "a2a-agent2"
+            - name: AGENT_URL
+              value: "http://localhost:8000"
+            - name: COLUMNS
+              value: "200"
+            - name: AGENT_HOST
+              value: "0.0.0.0"
+        service:
+          name: a2a-agent2
+          namespace: agentgateway-system
+          port: 8000
+          targetPort: 8000
+        route:
+          name: a2a-agent2
+          namespace: agentgateway-system
+          path: /a2a/agent2
+          gateway:
+            name: agentgateway-proxy
+            namespace: agentgateway-system
+      - name: agent3
+        deployment:
+          name: a2a-agent3
+          namespace: agentgateway-system
+          image: agent-example:latest
+          imagePullPolicy: Always
+          port: 8000
+          replicas: 1
+          env:
+            - name: AGENT_NAME
+              value: "a2a-agent3"
+            - name: AGENT_URL
+              value: "http://localhost:8000"
+            - name: COLUMNS
+              value: "200"
+            - name: AGENT_HOST
+              value: "0.0.0.0"
+        service:
+          name: a2a-agent3
+          namespace: agentgateway-system
+          port: 8000
+          targetPort: 8000
+        route:
+          name: a2a-agent3
+          namespace: agentgateway-system
+          path: /a2a/agent3
+          gateway:
+            name: agentgateway-proxy
+            namespace: agentgateway-system

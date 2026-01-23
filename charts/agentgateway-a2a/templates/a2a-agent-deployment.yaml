@@ -1,24 +1,27 @@
 {{- if .Values.a2a.agent.enabled }}
-{{- $deployment := .Values.a2a.agent.deployment | default dict }}
+{{- range .Values.a2a.agent.agents }}
+{{- $agent := . }}
+{{- $deployment := $agent.deployment | default dict }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $deployment.name | default "a2a-agent" }}
+  name: {{ $deployment.name | default (printf "a2a-%s" $agent.name) }}
   namespace: {{ $deployment.namespace | default "agentgateway-system" }}
   labels:
-    app: {{ $deployment.name | default "a2a-agent" }}
+    app: {{ $deployment.name | default (printf "a2a-%s" $agent.name) }}
 spec:
   replicas: {{ $deployment.replicas | default 1 }}
   selector:
     matchLabels:
-      app: {{ $deployment.name | default "a2a-agent" }}
+      app: {{ $deployment.name | default (printf "a2a-%s" $agent.name) }}
   template:
     metadata:
       labels:
-        app: {{ $deployment.name | default "a2a-agent" }}
+        app: {{ $deployment.name | default (printf "a2a-%s" $agent.name) }}
     spec:
       containers:
-        - name: {{ $deployment.name | default "a2a-agent" }}
+        - name: {{ $deployment.name | default (printf "a2a-%s" $agent.name) }}
           image: {{ $deployment.image | default "agent-example:latest" }}
           imagePullPolicy: {{ $deployment.imagePullPolicy | default "IfNotPresent" }}
           ports:
@@ -52,4 +55,5 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
+{{- end }}
 {{- end }}
