@@ -199,7 +199,17 @@ llm:
 ./scripts/agentgateway-port-forward-proxy.sh
 ```
 
-Gateway будет доступен на `http://localhost:80`.
+Gateway будет доступен на `http://localhost:80` (проброс с порта 8080 внутри кластера).
+
+### Port-forward к Keycloak
+
+Для доступа к Keycloak на локальной машине:
+
+```bash
+./scripts/agentgateway-port-forward-keycloak.sh
+```
+
+Keycloak будет доступен на `http://localhost:8080`.
 
 ### Port-forward к UI
 

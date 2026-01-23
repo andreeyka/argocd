@@ -1,0 +1,19 @@
+#!/bin/bash
+# Скрипт для port-forward к Keycloak
+
+NAMESPACE="keycloak"
+SERVICE="keycloak"
+LOCAL_PORT=8080
+REMOTE_PORT=8080
+
+# Останавливаем старые port-forward процессы на этом порту
+echo "🛑 Остановка старых port-forward процессов на порту $LOCAL_PORT..."
+pkill -f "port-forward.*$LOCAL_PORT" 2>/dev/null || true
+sleep 1
+
+echo "🔧 Запуск port-forward для $SERVICE в namespace $NAMESPACE..."
+echo "✅ Keycloak будет доступен на http://localhost:$LOCAL_PORT"
+echo "🛑 Для остановки нажмите Ctrl+C"
+echo ""
+
+kubectl port-forward -n $NAMESPACE svc/$SERVICE $LOCAL_PORT:$REMOTE_PORT
