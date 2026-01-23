@@ -21,16 +21,15 @@ spec:
       repoURL: ghcr.io/kgateway-dev/charts
       targetRevision: v2.2.0-main
     # Helm chart для контроллера agentgateway (создает proxy)
-    - chart: agentgateway
-      helm:
-        skipCrds: false
-        values: |
-          controller:
-            namespace: agentgateway-system
-          proxy:
-            namespace: agentgateway-system
-      repoURL: ghcr.io/kgateway-dev/charts
-      targetRevision: v2.2.0-main
+    # ВАЖНО: Этот chart должен устанавливаться в agentgateway-system
+    # Но из-за ограничений ArgoCD (один destination namespace),
+    # лучше использовать отдельное Application для agentgateway
+    # Поэтому этот источник закомментирован
+    # - chart: agentgateway
+    #   helm:
+    #     skipCrds: false
+    #   repoURL: ghcr.io/kgateway-dev/charts
+    #   targetRevision: v2.2.0-main
     # Gateway ресурсы из Git
     - repoURL: https://github.com/andreeyka/argocd
       targetRevision: main
