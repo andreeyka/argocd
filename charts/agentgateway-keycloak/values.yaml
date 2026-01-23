@@ -8,14 +8,19 @@ keycloak:
     imagePullPolicy: IfNotPresent
     replicas: 1
     env:
-      - name: KEYCLOAK_ADMIN
+      - name: KC_BOOTSTRAP_ADMIN_USERNAME
         value: "admin"
-      - name: KEYCLOAK_ADMIN_PASSWORD
+      - name: KC_BOOTSTRAP_ADMIN_PASSWORD
         value: "admin"
       - name: KC_HEALTH_ENABLED
         value: "true"
       - name: KC_METRICS_ENABLED
         value: "true"
+      # Для обратной совместимости (deprecated, но все еще работает)
+      - name: KEYCLOAK_ADMIN
+        value: "admin"
+      - name: KEYCLOAK_ADMIN_PASSWORD
+        value: "admin"
     resources:
       requests:
         memory: "512Mi"
