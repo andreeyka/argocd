@@ -12,20 +12,12 @@ spec:
       namespace: {{ ($route.gateway | default dict).namespace | default "agentgateway-system" }}
   rules:
     {{- if $route.path }}
-    # Для точного пути /a2a/agent1 -> /.well-known/agent-card.json
+    # Для GET запроса на точный путь /a2a/agent1 -> /.well-known/agent-card.json
     - matches:
-        {{- if $route.methods }}
-        {{- range $route.methods }}
         - path:
             type: Exact
             value: {{ $route.path | quote }}
-          method: {{ . }}
-        {{- end }}
-        {{- else }}
-        - path:
-            type: Exact
-            value: {{ $route.path | quote }}
-        {{- end }}
+          method: GET
       filters:
         - type: URLRewrite
           urlRewrite:
