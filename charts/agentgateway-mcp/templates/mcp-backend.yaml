@@ -1,32 +1,20 @@
 {{- if .Values.mcp.enabled }}
-{{- if .Values.mcp.backend }}
+{{- range .Values.mcp.servers }}
+{{- $server := . }}
 ---
 apiVersion: agentgateway.dev/v1alpha1
 kind: AgentgatewayBackend
 metadata:
-  name: {{ .Values.mcp.backend.name | default "mcp" }}
-  namespace: {{ .Values.mcp.backend.namespace | default "agentgateway-system" }}
+  name: {{ $server.backend.name | default $server.name }}
+  namespace: {{ $server.backend.namespace | default ($server.namespace | default "agentgateway-system") }}
 spec:
   mcp:
     targets:
-      {{- if .Values.mcp.backend.multiplex }}
-      # Multiplex MCP: один target выбирает все серверы по общей метке
-      # Все серверы с меткой mcp-server будут объединены в один target
-      - name: {{ .Values.mcp.backend.multiplexTargetName | default "multiplex-mcp" }}
+      # Dynamic MCP: каждый сервер имеет свой Backend с selector по метке app
+      - name: {{ $server.name }}
         selector:
           services:
             matchLabels:
-              mcp-server: {{ .Values.mcp.backend.multiplexLabel | default (index .Values.mcp.servers 0).mcpServerLabel | default "ia-mcp" }}
-      {{- else }}
-      # Dynamic MCP: отдельный target для каждого сервера
-      {{- range .Values.mcp.servers }}
-      - name: {{ .name }}-{{ .port | default 8000 }}
-        selector:
-          services:
-            matchLabels:
-              app: {{ .name }}
-              mcp-server: {{ .mcpServerLabel | default "ia-mcp" }}
-      {{- end }}
-      {{- end }}
+              app: {{ $server.name }}
 {{- end }}
 {{- end }}

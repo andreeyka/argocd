@@ -9,18 +9,15 @@ metadata:
   namespace: {{ $server.namespace | default "agentgateway-system" }}
   labels:
     app: {{ $server.name }}
-    mcp-server: {{ $server.mcpServerLabel | default "ia-mcp" }}
 spec:
   replicas: {{ $server.replicas | default 1 }}
   selector:
     matchLabels:
       app: {{ $server.name }}
-      mcp-server: {{ $server.mcpServerLabel | default "ia-mcp" }}
   template:
     metadata:
       labels:
         app: {{ $server.name }}
-        mcp-server: {{ $server.mcpServerLabel | default "ia-mcp" }}
     spec:
       containers:
         - name: {{ $server.name }}
