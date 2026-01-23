@@ -19,6 +19,8 @@ a2a:
           value: "http://localhost:8000"
         - name: COLUMNS
           value: "200"
+        - name: AGENT_HOST
+          value: "0.0.0.0"
     service:
       name: a2a-agent
       namespace: agentgateway-system
