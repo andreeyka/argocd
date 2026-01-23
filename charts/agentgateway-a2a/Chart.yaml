@@ -1,0 +1,5 @@
+apiVersion: v2
+name: agentgateway-a2a
+description: A2A agent for agentgateway
+type: application
+version: 0.1.0

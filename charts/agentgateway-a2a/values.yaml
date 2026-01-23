@@ -1,0 +1,40 @@
+# Default values for agentgateway-a2a
+# Этот файл используется как базовый values.yaml для Helm чарта
+# Для переопределений используйте values-dev.yaml или values-prod.yaml
+a2a:
+  agent:
+    enabled: true
+    deployment:
+      name: a2a-agent
+      namespace: agentgateway-system
+      image: agent-example:latest
+      imagePullPolicy: IfNotPresent
+      port: 9090
+      replicas: 1
+      # Пример использования переменных окружения:
+      env:
+        - name: AGENT_NAME
+          value: "a2a-agent"
+        - name: AGENT_URL
+          value: "http://localhost:8000"
+      #   - name: API_KEY
+      #     valueFrom:
+      #       secretKeyRef:
+      #         name: a2a-secret
+      #         key: api-key
+      #   - name: CONFIG_MAP_VALUE
+      #     valueFrom:
+      #       configMapKeyRef:
+      #         name: a2a-config
+      #         key: config-value
+    service:
+      name: a2a-agent
+      namespace: agentgateway-system
+      port: 9090
+      targetPort: 9090
+    route:
+      name: a2a
+      namespace: agentgateway-system
+      gateway:
+        name: agentgateway-proxy
+        namespace: agentgateway-system

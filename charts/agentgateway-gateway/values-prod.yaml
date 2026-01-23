@@ -1,0 +1,2 @@
+# Production values for agentgateway-gateway
+# В prod окружении используются значения по умолчанию из values.yaml

@@ -1,0 +1,7 @@
+# Development values for agentgateway-llm
+# Переопределения для development окружения
+llm:
+  cloudru:
+    backend:
+      # В dev окружении auth обычно не используется (тестирование через curl)
+      auth: null

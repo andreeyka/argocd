@@ -1,0 +1,4 @@
+# Переопределения для prod окружения
+a2a:
+  agent:
+    enabled: true

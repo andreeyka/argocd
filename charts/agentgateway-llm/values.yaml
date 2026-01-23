@@ -1,0 +1,25 @@
+# Default values for agentgateway-llm
+# Этот файл используется как базовый values.yaml для Helm чарта
+# Для переопределений используйте values-dev.yaml или values-prod.yaml
+llm:
+  cloudru:
+    enabled: true
+    backend:
+      name: cloudru
+      namespace: agentgateway-system
+      model: "Qwen/Qwen3-235B-A22B-Instruct-2507"
+      host: foundation-models.api.cloud.ru
+      port: 443
+      path: "/v1/chat/completions"
+      sni: foundation-models.api.cloud.ru
+      auth: null # Раскомментируйте для использования Secret
+      # auth:
+      #   secretRef:
+      #     name: cloudru-secret
+    route:
+      name: cloudru
+      namespace: agentgateway-system
+      path: /cloudru
+      gateway:
+        name: agentgateway-proxy
+        namespace: agentgateway-system

@@ -1,0 +1,15 @@
+{{- if .Values.a2a.agent.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ .Values.a2a.agent.route.name }}
+  namespace: {{ .Values.a2a.agent.route.namespace }}
+spec:
+  parentRefs:
+    - name: {{ .Values.a2a.agent.route.gateway.name }}
+      namespace: {{ .Values.a2a.agent.route.gateway.namespace }}
+  rules:
+    - backendRefs:
+        - name: {{ .Values.a2a.agent.service.name }}
+          port: {{ .Values.a2a.agent.service.port }}
+{{- end }}
