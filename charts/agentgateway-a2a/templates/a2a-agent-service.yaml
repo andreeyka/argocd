@@ -1,16 +1,18 @@
 {{- if .Values.a2a.agent.enabled }}
+{{- $service := .Values.a2a.agent.service | default dict }}
+{{- $deployment := .Values.a2a.agent.deployment | default dict }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.a2a.agent.service.name }}
-  namespace: {{ .Values.a2a.agent.service.namespace }}
+  name: {{ $service.name | default "a2a-agent" }}
+  namespace: {{ $service.namespace | default "agentgateway-system" }}
 spec:
   selector:
-    app: {{ .Values.a2a.agent.deployment.name }}
+    app: {{ $deployment.name | default "a2a-agent" }}
   type: ClusterIP
   ports:
     - protocol: TCP
-      port: {{ .Values.a2a.agent.service.port }}
-      targetPort: {{ .Values.a2a.agent.service.targetPort }}
+      port: {{ $service.port | default 9090 }}
+      targetPort: {{ $service.targetPort | default 9090 }}
       appProtocol: kgateway.dev/a2a
 {{- end }}

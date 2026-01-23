@@ -1,31 +1,32 @@
 {{- if .Values.a2a.agent.enabled }}
+{{- $deployment := .Values.a2a.agent.deployment | default dict }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.a2a.agent.deployment.name }}
-  namespace: {{ .Values.a2a.agent.deployment.namespace }}
+  name: {{ $deployment.name | default "a2a-agent" }}
+  namespace: {{ $deployment.namespace | default "agentgateway-system" }}
   labels:
-    app: {{ .Values.a2a.agent.deployment.name }}
+    app: {{ $deployment.name | default "a2a-agent" }}
 spec:
-  replicas: {{ .Values.a2a.agent.deployment.replicas }}
+  replicas: {{ $deployment.replicas | default 1 }}
   selector:
     matchLabels:
-      app: {{ .Values.a2a.agent.deployment.name }}
+      app: {{ $deployment.name | default "a2a-agent" }}
   template:
     metadata:
       labels:
-        app: {{ .Values.a2a.agent.deployment.name }}
+        app: {{ $deployment.name | default "a2a-agent" }}
     spec:
       containers:
-        - name: {{ .Values.a2a.agent.deployment.name }}
-          image: {{ .Values.a2a.agent.deployment.image }}
-          imagePullPolicy: {{ .Values.a2a.agent.deployment.imagePullPolicy }}
+        - name: {{ $deployment.name | default "a2a-agent" }}
+          image: {{ $deployment.image | default "agent-example:latest" }}
+          imagePullPolicy: {{ $deployment.imagePullPolicy | default "IfNotPresent" }}
           ports:
-            - containerPort: {{ .Values.a2a.agent.deployment.port }}
+            - containerPort: {{ $deployment.port | default 9090 }}
               protocol: TCP
-          {{- if .Values.a2a.agent.deployment.env }}
+          {{- if $deployment.env }}
           env:
-            {{- range .Values.a2a.agent.deployment.env }}
+            {{- range $deployment.env }}
             - name: {{ .name }}
               {{- if .value }}
               value: {{ .value | quote }}
