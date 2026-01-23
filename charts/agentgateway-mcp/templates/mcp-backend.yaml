@@ -9,13 +9,24 @@ metadata:
 spec:
   mcp:
     targets:
+      {{- if .Values.mcp.backend.multiplex }}
+      # Multiplex MCP: один target выбирает все серверы по общей метке
+      # Все серверы с меткой mcp-server будут объединены в один target
+      - name: {{ .Values.mcp.backend.multiplexTargetName | default "multiplex-mcp" }}
+        selector:
+          services:
+            matchLabels:
+              mcp-server: {{ .Values.mcp.backend.multiplexLabel | default (index .Values.mcp.servers 0).mcpServerLabel | default "ia-mcp" }}
+      {{- else }}
+      # Dynamic MCP: отдельный target для каждого сервера
       {{- range .Values.mcp.servers }}
       - name: {{ .name }}-{{ .port | default 8000 }}
         selector:
           services:
             matchLabels:
               app: {{ .name }}
-              mcp-server: ia-mcp
+              mcp-server: {{ .mcpServerLabel | default "ia-mcp" }}
+      {{- end }}
       {{- end }}
 {{- end }}
 {{- end }}

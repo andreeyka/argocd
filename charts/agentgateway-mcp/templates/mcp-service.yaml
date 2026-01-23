@@ -9,11 +9,15 @@ metadata:
   namespace: {{ $server.namespace | default "agentgateway-system" }}
   labels:
     app: {{ $server.name }}
-    mcp-server: ia-mcp
+    mcp-server: {{ $server.mcpServerLabel | default "ia-mcp" }}
+  {{- if $server.mcpPath }}
+  annotations:
+    kgateway.dev/mcp-path: {{ $server.mcpPath }}
+  {{- end }}
 spec:
   selector:
     app: {{ $server.name }}
-    mcp-server: ia-mcp
+    mcp-server: {{ $server.mcpServerLabel | default "ia-mcp" }}
   type: ClusterIP
   ports:
     - protocol: TCP

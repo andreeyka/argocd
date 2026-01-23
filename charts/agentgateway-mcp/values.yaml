@@ -2,7 +2,11 @@
 # Этот файл используется как базовый values.yaml для Helm чарта
 # Для переопределений используйте values-dev.yaml или values-prod.yaml
 
-# Конфигурация для MCP серверов (Multiplex MCP)
+# Конфигурация для MCP серверов
+# Поддерживаются два режима:
+# 1. Multiplex MCP - все серверы объединяются в один target через общую метку mcp-server
+# 2. Dynamic MCP - каждый сервер имеет свой отдельный target
+# Важно: поддерживается только streamable-http транспорт (SSE не поддерживается)
 mcp:
   enabled: true
   # Список MCP серверов для развертывания
@@ -13,9 +17,14 @@ mcp:
       imagePullPolicy: Always
       port: 8000
       replicas: 1
+      # Метка для selector в Backend (опционально, по умолчанию "ia-mcp")
+      # mcpServerLabel: ia-mcp
+      # Путь MCP endpoint (опционально, по умолчанию /mcp для streamable-http)
+      # mcpPath: /mcp
       env:
         - name: MCP_HOST
           value: "0.0.0.0"
+        # streamable-http обязателен для Dynamic MCP
         - name: MCP_TRANSPORT
           value: "streamable-http"
         - name: COLUMNS
@@ -46,10 +55,21 @@ mcp:
           value: "streamable-http"
         - name: COLUMNS
           value: "200"
-  # Конфигурация AgentgatewayBackend для Multiplex MCP
+  # Конфигурация AgentgatewayBackend
   backend:
     name: mcp
     namespace: agentgateway-system
+    # Multiplex MCP: объединить все серверы в один target
+    # Если multiplex: true, создается один target с selector по общей метке mcp-server
+    # Все серверы с одинаковой меткой mcp-server будут доступны через один endpoint
+    # Инструменты от разных серверов будут доступны с префиксом имени сервера
+    # Например: ia-mcp-1_tool-name, ia-mcp-2_tool-name
+    multiplex: true
+    # Имя target для мультиплексирования (опционально)
+    multiplexTargetName: multiplex-mcp
+    # Общая метка для выбора всех серверов (опционально, по умолчанию "ia-mcp")
+    # ВАЖНО: все серверы должны иметь одинаковую метку mcp-server для мультиплексирования
+    multiplexLabel: ia-mcp
   # Конфигурация HTTPRoute для маршрутизации к MCP
   route:
     name: mcp
