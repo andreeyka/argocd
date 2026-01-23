@@ -5,8 +5,7 @@ jwtAuth:
   # Для локального тестирования используем localhost issuer
   providers:
     - issuer: "http://localhost:8080/realms/master"
-      audiences:
-        - "my-application"
+      # audiences не указаны - проверка отключена (токен имеет audience 'account')
       jwks:
         remote:
           jwksPath: "/realms/master/protocol/openid-connect/certs"
