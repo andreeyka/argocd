@@ -8,15 +8,15 @@ a2a:
       name: a2a-agent
       namespace: agentgateway-system
       image: agent-example:latest
-      imagePullPolicy: IfNotPresent
+      imagePullPolicy: Always
       port: 8000
       replicas: 1
-      # Аргументы командной строки (опционально)
-      # args:
-      #   - --host
-      #   - "0.0.0.0"
-      #   - --port
-      #   - "8000"
+      # Аргументы командной строки для передачи хоста и порта
+      args:
+        - --host
+        - "0.0.0.0"
+        - --port
+        - "8000"
       # Пример использования переменных окружения:
       env:
         - name: AGENT_NAME
