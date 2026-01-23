@@ -8,11 +8,10 @@ metadata:
   name: jwt-auth-{{ .name }}
   namespace: {{ $namespace }}
 spec:
-  targetRef:
-    group: gateway.networking.k8s.io
-    kind: HTTPRoute
-    name: {{ .name }}
-    namespace: {{ $namespace }}
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: {{ .name }}
   traffic:
     jwtAuthentication:
       mode: {{ $.Values.jwtAuth.a2aPolicies.mode }}

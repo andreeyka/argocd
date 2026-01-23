@@ -6,11 +6,10 @@ metadata:
   name: {{ .Values.jwtAuth.gatewayPolicy.name }}
   namespace: {{ .Values.jwtAuth.gatewayPolicy.namespace }}
 spec:
-  targetRef:
-    group: {{ .Values.jwtAuth.targetRef.group }}
-    kind: {{ .Values.jwtAuth.targetRef.kind }}
-    name: {{ .Values.jwtAuth.targetRef.name }}
-    namespace: {{ .Values.jwtAuth.targetRef.namespace }}
+  targetRefs:
+    - group: {{ .Values.jwtAuth.targetRef.group }}
+      kind: {{ .Values.jwtAuth.targetRef.kind }}
+      name: {{ .Values.jwtAuth.targetRef.name }}
   traffic:
     jwtAuthentication:
       mode: {{ .Values.jwtAuth.gatewayPolicy.mode }}
