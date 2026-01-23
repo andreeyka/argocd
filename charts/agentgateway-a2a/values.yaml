@@ -11,6 +11,12 @@ a2a:
       imagePullPolicy: IfNotPresent
       port: 8000
       replicas: 1
+      # Аргументы командной строки (опционально)
+      # args:
+      #   - --host
+      #   - "0.0.0.0"
+      #   - --port
+      #   - "8000"
       # Пример использования переменных окружения:
       env:
         - name: AGENT_NAME
