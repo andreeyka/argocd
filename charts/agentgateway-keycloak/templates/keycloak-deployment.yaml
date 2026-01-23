@@ -38,27 +38,27 @@ spec:
             value: {{ .value | quote }}
 {{- end }}
         {{- if .Values.postgresql.enabled }}
-        - name: KC_DB
-          value: postgres
-        - name: KC_DB_URL_HOST
-          value: {{ .Values.postgresql.name }}
-        - name: KC_DB_URL_PORT
-          value: "5432"
-        - name: KC_DB_URL_DATABASE
-          valueFrom:
-            secretKeyRef:
-              name: keycloak-db
-              key: database
-        - name: KC_DB_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: keycloak-db
-              key: username
-        - name: KC_DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: keycloak-db
-              key: password
+          - name: KC_DB
+            value: postgres
+          - name: KC_DB_URL_HOST
+            value: {{ .Values.postgresql.name }}
+          - name: KC_DB_URL_PORT
+            value: "5432"
+          - name: KC_DB_URL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: keycloak-db
+                key: database
+          - name: KC_DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: keycloak-db
+                key: username
+          - name: KC_DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: keycloak-db
+                key: password
         {{- end }}
         ports:
         - name: http
