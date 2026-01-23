@@ -29,6 +29,12 @@ spec:
           ports:
             - containerPort: {{ $server.port | default 8000 }}
               protocol: TCP
+          {{- if $server.command }}
+          command: {{ $server.command }}
+          {{- end }}
+          {{- if $server.args }}
+          args: {{ $server.args }}
+          {{- end }}
           {{- if $server.env }}
           env:
             {{- range $server.env }}

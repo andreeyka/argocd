@@ -13,18 +13,33 @@ mcp:
       imagePullPolicy: Always
       port: 8000
       replicas: 1
+      env:
+        - name: MCP_HOST
+          value: "0.0.0.0"
+        - name: COLUMNS
+          value: "200"
     - name: ia-mcp-2
       namespace: agentgateway-system
       image: ia-mcp:latest
       imagePullPolicy: Always
       port: 8000
       replicas: 1
+      env:
+        - name: MCP_HOST
+          value: "0.0.0.0"
+        - name: COLUMNS
+          value: "200"
     - name: ia-mcp-3
       namespace: agentgateway-system
       image: ia-mcp:latest
       imagePullPolicy: Always
       port: 8000
       replicas: 1
+      env:
+        - name: MCP_HOST
+          value: "0.0.0.0"
+        - name: COLUMNS
+          value: "200"
   # Конфигурация AgentgatewayBackend для Multiplex MCP
   backend:
     name: mcp
