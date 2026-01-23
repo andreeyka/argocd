@@ -13,7 +13,7 @@ a2a:
           image: agent-example:latest
           imagePullPolicy: Always
           port: 8000
-          replicas: 5
+          replicas: 1
           # Пример использования переменных окружения:
           env:
             - name: AGENT_NAME
@@ -43,7 +43,7 @@ a2a:
           image: agent-example:latest
           imagePullPolicy: Always
           port: 8000
-          replicas: 5
+          replicas: 1
           env:
             - name: AGENT_NAME
               value: "a2a-agent2"
@@ -72,7 +72,7 @@ a2a:
           image: agent-example:latest
           imagePullPolicy: Always
           port: 8000
-          replicas: 5
+          replicas: 1
           env:
             - name: AGENT_NAME
               value: "a2a-agent3"
