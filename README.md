@@ -117,11 +117,13 @@ kubectl apply -f argocd-apps/crds/agentgateway-crds-helm.yaml
 Выберите окружение для установки:
 
 **Для development окружения:**
+
 ```bash
 kubectl apply -f argocd-apps/dev/agentgateway.yaml
 ```
 
 **Для production окружения:**
+
 ```bash
 kubectl apply -f argocd-apps/prod/agentgateway.yaml
 ```
@@ -175,6 +177,7 @@ EOF
 ```
 
 Затем обновите соответствующий файл values для вашего окружения:
+
 - Для dev: `charts/agentgateway-llm/values-dev.yaml`
 - Для prod: `charts/agentgateway-llm/values-prod.yaml`
 
@@ -200,6 +203,7 @@ llm:
 ```
 
 Этот скрипт запустит все port-forward'ы в фоновом режиме:
+
 - Proxy: `http://localhost:8000`
 - Keycloak: `http://localhost:8080`
 - Control plane admin UI: `http://localhost:9095`
@@ -210,6 +214,47 @@ llm:
 
 ```bash
 ./scripts/agentgateway-port-forward-stop.sh
+```
+
+### Получение списка версий Helm чартов
+
+Для получения списка доступных версий Helm чарта из OCI репозитория:
+
+```bash
+./scripts/list-helm-versions.sh [chart-name] [registry]
+```
+
+Примеры:
+
+```bash
+# Список версий чарта kgateway из реестра cr.kgateway.dev
+./scripts/list-helm-versions.sh kgateway
+
+# Список версий с указанием полного пути реестра
+./scripts/list-helm-versions.sh kgateway cr.kgateway.dev/kgateway-dev/charts
+```
+
+Скрипт использует два метода:
+1. **OCI API** - если реестр доступен без аутентификации или после `helm registry login`
+2. **Проверка известных версий** - проверяет доступность популярных версий
+
+**Альтернативные методы:**
+
+Если OCI API требует аутентификацию:
+
+```bash
+# Вход в реестр
+helm registry login cr.kgateway.dev
+
+# Получение списка версий через OCI API
+curl -H "Authorization: Bearer $(helm registry token)" \
+  https://cr.kgateway.dev/v2/kgateway-dev/charts/kgateway/tags/list | jq .tags
+```
+
+Проверка конкретной версии:
+
+```bash
+helm show chart oci://cr.kgateway.dev/kgateway-dev/charts/kgateway --version v2.1.2
 ```
 
 ## Дополнительная информация

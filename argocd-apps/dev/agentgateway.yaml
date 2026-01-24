@@ -10,11 +10,11 @@ spec:
   project: default
   sources:
     # Helm chart для контроллера agentgateway (создает GatewayClass и proxy)
-    - chart: agentgateway
+    - repoURL: https://github.com/andreeyka/argocd
+      targetRevision: main
+      path: kgateway
       helm:
         skipCrds: false
-      repoURL: ghcr.io/kgateway-dev/charts
-      targetRevision: v2.2.0-main
     # Gateway ресурсы из Git
     - repoURL: https://github.com/andreeyka/argocd
       targetRevision: main
