@@ -9,6 +9,11 @@ kind: Service
 metadata:
   name: {{ $name }}
   namespace: {{ $service.namespace | default $deployment.namespace | default .namespace | default "agentgateway-system" }}
+  labels:
+    app: {{ $appName }}
+    {{- if $service.labels }}
+    {{- toYaml $service.labels | nindent 4 }}
+    {{- end }}
   {{- if $service.annotations }}
   annotations:
     {{- toYaml $service.annotations | nindent 4 }}
