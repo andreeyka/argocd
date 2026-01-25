@@ -9,9 +9,10 @@
 {{- end }}
 {{- range $individualServers }}
 {{- $server := mergeOverwrite (deepCopy $defaults) . }}
-{{- $backendName := $server.backend.name | default $server.name }}
-{{- $routeName := $server.route.name | default $server.name }}
-{{- $routePath := $server.route.path | default (printf "/mcp/%s" $server.name) }}
+{{- $backendName := dig "backend" "name" $server.name $server }}
+{{- $routeName := dig "route" "name" $server.name $server }}
+{{- $routePath := dig "route" "path" (printf "/mcp/%s" $server.name) $server }}
+{{- $routeGateway := dig "route" "gateway" $defaults.gateway $server }}
 ---
 apiVersion: agentgateway.dev/v1alpha1
 kind: AgentgatewayBackend
@@ -35,8 +36,8 @@ metadata:
   namespace: {{ $server.namespace | default $defaults.namespace }}
 spec:
   parentRefs:
-    - name: {{ ($server.route.gateway | default $defaults.gateway).name }}
-      namespace: {{ ($server.route.gateway | default $defaults.gateway).namespace }}
+    - name: {{ $routeGateway.name }}
+      namespace: {{ $routeGateway.namespace }}
   rules:
     # Individual MCP: каждый сервер имеет свой HTTPRoute с уникальным путем
     - matches:

@@ -47,7 +47,7 @@ spec:
 {{- end }}
 {{- range $individualServers }}
 {{- $server := mergeOverwrite (deepCopy $defaults) . }}
-{{- $backendName := $server.backend.name | default $server.name }}
+{{- $backendName := dig "backend" "name" $server.name $server }}
 {{- /* Проверяем, есть ли authorization для этого сервера */ -}}
 {{- if and $server.authorization $server.authorization.enabled }}
 ---
