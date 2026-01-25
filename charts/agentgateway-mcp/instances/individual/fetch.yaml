@@ -1,3 +1,8 @@
 # MCP Fetch Server - HTTP requests
+# Используем кастомный образ с StreamableHTTP транспортом
+# Dockerfile: docker/mcp-fetch/Dockerfile
+# Based on: https://pypi.org/project/mcp-fetch-streamablehttp-server/
 name: mcp-fetch
-image: mcp/fetch:latest
+image: mcp-fetch-http:latest
+imagePullPolicy: Never  # Локальный образ
+port: 3000  # mcp-fetch-streamablehttp-server слушает на 3000
