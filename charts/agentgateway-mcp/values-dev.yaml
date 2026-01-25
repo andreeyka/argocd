@@ -7,7 +7,6 @@ mcp:
     - ia-mcp-3.yaml
   # Список файлов серверов для individual режима
   individualServerFiles:
-    - playwright.yaml
     - atlassian.yaml
     - fetch.yaml
     - context7.yaml

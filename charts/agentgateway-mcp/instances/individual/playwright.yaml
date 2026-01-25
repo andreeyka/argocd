@@ -1,3 +1,0 @@
-# MCP Playwright Server - Browser automation
-name: mcp-playwright
-image: mcp/playwright:latest

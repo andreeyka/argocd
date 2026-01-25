@@ -49,14 +49,14 @@ mcp:
     route:
       name: mcp
       namespace: agentgateway-system
-      path: /mcp    # Один путь для всех
+      path: /mcp # Один путь для всех
     # === Authorization Policy для Multiplexed Backend ===
     # Ограничивает доступ к MCP tools на основе JWT claims
     # Документация: https://agentgateway.dev/docs/kubernetes/latest/mcp/tool-access/
     authorization:
       enabled: false
-      policyName: mcp-multiplex-auth  # Имя AgentgatewayPolicy
-      action: Allow  # Allow или Deny
+      policyName: mcp-multiplex-auth # Имя AgentgatewayPolicy
+      action: Allow # Allow или Deny
       # CEL выражения для контроля доступа к tools (OR логика)
       # Примеры:
       # - 'mcp.tool.name == "get_me"' - доступ только к tool get_me

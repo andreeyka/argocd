@@ -4,5 +4,5 @@
 # Based on: https://pypi.org/project/mcp-fetch-streamablehttp-server/
 name: mcp-fetch
 image: mcp-fetch-http:latest
-imagePullPolicy: Never  # Локальный образ
-port: 3000  # mcp-fetch-streamablehttp-server слушает на 3000
+imagePullPolicy: IfNotPresent
+port: 3000 # mcp-fetch-streamablehttp-server слушает на 3000
