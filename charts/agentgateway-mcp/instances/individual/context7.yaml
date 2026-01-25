@@ -1,3 +1,11 @@
 # MCP Context7 Server - Documentation lookup
+# Используем context7-http образ с поддержкой HTTP транспорта
+# https://github.com/lrstanley/context7-http
 name: mcp-context7
-image: mcp/context7:latest
+image: ghcr.io/lrstanley/context7-http:latest
+# context7-http слушает на порту 8080 по умолчанию, endpoint /mcp
+port: 8080
+args:
+  - "--bind-addr"
+  - "0.0.0.0:8080"
+  - "--debug"
