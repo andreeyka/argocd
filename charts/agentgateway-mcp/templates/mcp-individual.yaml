@@ -40,9 +40,10 @@ spec:
       namespace: {{ $routeGateway.namespace }}
   rules:
     # Individual MCP: каждый сервер имеет свой HTTPRoute с уникальным путем
+    # Используем Exact для точного совпадения пути
     - matches:
         - path:
-            type: PathPrefix
+            type: Exact
             value: {{ $routePath | quote }}
       backendRefs:
         - name: {{ $backendName }}
