@@ -114,6 +114,7 @@ CRDs устанавливаются автоматически при запус
 ```
 
 Скрипт устанавливает:
+
 - **Gateway API CRDs (v1.4.0)** - из официального источника Kubernetes SIG
 - **Agentgateway CRDs** - через helm template из официального OCI registry `ghcr.io/kgateway-dev/charts`
 

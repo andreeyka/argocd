@@ -78,4 +78,4 @@ mcp:
   #     matchExpressions:
   #       - 'jwt.sub == "alice" && mcp.tool.name == "specific_tool"'
   individual:
-    enabled: false
+    enabled: true
