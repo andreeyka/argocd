@@ -30,5 +30,32 @@
 {{- $annotations = mergeOverwrite $annotations (dict "kgateway.dev/mcp-path" $server.mcpPath) }}
 {{- $service = mergeOverwrite $service (dict "annotations" $annotations) }}
 {{- end }}
-{{- include "agentgateway-library.service" (dict "name" $server.name "namespace" ($server.namespace | default $defaults.namespace) "deployment" $deployment "service" $service) }}
+{{- $name := $service.name | default $deployment.name | default $server.name }}
+{{- $appName := $deployment.name | default $server.name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  namespace: {{ $service.namespace | default $deployment.namespace | default $defaults.namespace | default "agentgateway-system" }}
+  labels:
+    app: {{ $appName }}
+    {{- if $service.labels }}
+    {{- toYaml $service.labels | nindent 4 }}
+    {{- end }}
+  {{- if $service.annotations }}
+  annotations:
+    {{- toYaml $service.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    app: {{ $appName }}
+  type: {{ $service.type | default "ClusterIP" }}
+  ports:
+    - protocol: TCP
+      port: {{ $service.port | default 8000 }}
+      targetPort: {{ $service.targetPort | default ($deployment.port | default 8000) }}
+      {{- if $service.appProtocol }}
+      appProtocol: {{ $service.appProtocol }}
+      {{- end }}
 {{- end }}
