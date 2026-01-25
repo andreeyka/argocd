@@ -1,25 +1,28 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: agentgateway-crds-helm
+  name: agentgateway-crds
   namespace: argocd
 spec:
   destination:
     namespace: agentgateway-system
     server: https://kubernetes.default.svc
   project: default
-  source:
-    chart: agentgateway-crds
-    helm:
-      skipCrds: false
-    repoURL: ghcr.io/kgateway-dev/charts
-    targetRevision: v2.2.0-main
+  sources:
+    # Gateway API CRDs (v1.4.0) - необходимы для HTTPRoute и Gateway ресурсов
+    - repoURL: https://github.com/andreeyka/argocd
+      targetRevision: main
+      path: charts/agentgateway-gateway-api-crds
+    # Agentgateway CRDs из официального Helm chart
+    - chart: agentgateway-crds
+      helm:
+        skipCrds: false
+      repoURL: ghcr.io/kgateway-dev/charts
+      targetRevision: v2.2.0-main
   syncPolicy:
     automated:
-      # Prune resources during auto-syncing (default is false)
       prune: true
-      # Sync the app in part when resources are changed only in the target Kubernetes cluster
-      # but not in the git source (default is false).
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
