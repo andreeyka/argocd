@@ -20,6 +20,8 @@ jwtAuth:
         namespace: agentgateway-system
       - name: a2a-agent3
         namespace: agentgateway-system
+      - name: mcp
+        namespace: agentgateway-system
   # Общие настройки провайдеров JWT
   providers:
     - issuer: "http://keycloak.keycloak.svc.cluster.local:8080/realms/master"
