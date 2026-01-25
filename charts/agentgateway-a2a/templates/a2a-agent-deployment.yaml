@@ -1,59 +1,17 @@
 {{- if .Values.a2a.agent.enabled }}
-{{- range .Values.a2a.agent.agents }}
-{{- $agent := . }}
-{{- $deployment := $agent.deployment | default dict }}
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ $deployment.name | default (printf "a2a-%s" $agent.name) }}
-  namespace: {{ $deployment.namespace | default "agentgateway-system" }}
-  labels:
-    app: {{ $deployment.name | default (printf "a2a-%s" $agent.name) }}
-spec:
-  replicas: {{ $deployment.replicas | default 1 }}
-  selector:
-    matchLabels:
-      app: {{ $deployment.name | default (printf "a2a-%s" $agent.name) }}
-  template:
-    metadata:
-      labels:
-        app: {{ $deployment.name | default (printf "a2a-%s" $agent.name) }}
-    spec:
-      containers:
-        - name: {{ $deployment.name | default (printf "a2a-%s" $agent.name) }}
-          image: {{ $deployment.image | default "agent-example:latest" }}
-          imagePullPolicy: {{ $deployment.imagePullPolicy | default "IfNotPresent" }}
-          ports:
-            - containerPort: {{ $deployment.port | default 8000 }}
-              protocol: TCP
-          {{- if $deployment.env }}
-          env:
-            {{- range $deployment.env }}
-            - name: {{ .name }}
-              {{- if .value }}
-              value: {{ .value | quote }}
-              {{- end }}
-              {{- if .valueFrom }}
-              valueFrom:
-                {{- if .valueFrom.secretKeyRef }}
-                secretKeyRef:
-                  name: {{ .valueFrom.secretKeyRef.name }}
-                  key: {{ .valueFrom.secretKeyRef.key }}
-                  {{- if .valueFrom.secretKeyRef.optional }}
-                  optional: {{ .valueFrom.secretKeyRef.optional }}
-                  {{- end }}
-                {{- end }}
-                {{- if .valueFrom.configMapKeyRef }}
-                configMapKeyRef:
-                  name: {{ .valueFrom.configMapKeyRef.name }}
-                  key: {{ .valueFrom.configMapKeyRef.key }}
-                  {{- if .valueFrom.configMapKeyRef.optional }}
-                  optional: {{ .valueFrom.configMapKeyRef.optional }}
-                  {{- end }}
-                {{- end }}
-              {{- end }}
-            {{- end }}
-          {{- end }}
+{{- $defaults := .Values.a2a.agent.defaults }}
+{{- /* Загружаем агентов из файлов */}}
+{{- $agents := list }}
+{{- range .Values.a2a.agent.agentFiles }}
+{{- $file := printf "instances/%s" . }}
+{{- $agentData := $.Files.Get $file | fromYaml }}
+{{- $agents = append $agents $agentData }}
+{{- end }}
+{{- range $agents }}
+{{- $agent := mergeOverwrite (deepCopy $defaults) . }}
+{{- $deploymentDefaults := dict "namespace" $defaults.namespace "imagePullPolicy" $defaults.imagePullPolicy "port" $defaults.port "replicas" $defaults.replicas "env" $defaults.env }}
+{{- $deployment := mergeOverwrite (deepCopy $deploymentDefaults) ($agent.deployment | default dict) }}
+{{- $name := $deployment.name | default (printf "a2a-%s" $agent.name) }}
+{{- include "agentgateway-library.deployment" (dict "name" $agent.name "namespace" ($deployment.namespace | default $defaults.namespace) "deployment" $deployment) }}
 {{- end }}
 {{- end }}

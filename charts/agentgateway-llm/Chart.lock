@@ -1,0 +1,6 @@
+dependencies:
+- name: agentgateway-library
+  repository: file://../agentgateway-library
+  version: 0.1.0
+digest: sha256:d77e24b034fabf6ef6acd1ea27b51e6bb822609b533d218d64d1ca0e252a667c
+generated: "2026-01-25T22:11:58.980353+03:00"

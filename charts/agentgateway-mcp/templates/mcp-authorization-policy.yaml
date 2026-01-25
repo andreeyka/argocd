@@ -1,0 +1,75 @@
+{{- /*
+  MCP Authorization Policies
+  Документация: https://agentgateway.dev/docs/kubernetes/latest/mcp/tool-access/
+  
+  Поддерживаются два типа политик:
+  1. Политика для Multiplexed Backend - ограничивает доступ к tools для всех MCP серверов
+  2. Политики для Individual Backends - ограничивает доступ к tools для каждого MCP сервера отдельно
+  
+  Примеры CEL выражений для matchExpressions:
+  - 'mcp.tool.name == "add_issue_comment"' - доступ только к инструменту add_issue_comment
+  - 'jwt.sub == "alice"' - доступ только для пользователя alice
+  - 'jwt.sub == "alice" && mcp.tool.name == "get_me"' - alice может использовать только get_me
+*/ -}}
+
+{{- /* === Политика для Multiplexed Backend === */ -}}
+{{- if and .Values.mcp.multiplexed.enabled .Values.mcp.multiplexed.authorization.enabled }}
+---
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata:
+  name: {{ .Values.mcp.multiplexed.authorization.policyName | default (printf "%s-auth" .Values.mcp.multiplexed.backend.name) }}
+  namespace: {{ .Values.mcp.multiplexed.backend.namespace | default .Values.mcp.defaults.namespace }}
+spec:
+  targetRefs:
+    - group: agentgateway.dev
+      kind: AgentgatewayBackend
+      name: {{ .Values.mcp.multiplexed.backend.name }}
+  backend:
+    mcp:
+      authorization:
+        action: {{ .Values.mcp.multiplexed.authorization.action | default "Allow" }}
+        policy:
+          matchExpressions:
+{{- range .Values.mcp.multiplexed.authorization.matchExpressions }}
+            - {{ . | quote }}
+{{- end }}
+{{- end }}
+
+{{- /* === Политики для Individual Backends === */ -}}
+{{- if .Values.mcp.individual.enabled }}
+{{- $defaults := .Values.mcp.defaults }}
+{{- $individualServers := list }}
+{{- range .Values.mcp.individualServerFiles }}
+{{- $file := printf "instances/individual/%s" . }}
+{{- $serverData := $.Files.Get $file | fromYaml }}
+{{- $individualServers = append $individualServers $serverData }}
+{{- end }}
+{{- range $individualServers }}
+{{- $server := mergeOverwrite (deepCopy $defaults) . }}
+{{- $backendName := $server.backend.name | default $server.name }}
+{{- /* Проверяем, есть ли authorization для этого сервера */ -}}
+{{- if and $server.authorization $server.authorization.enabled }}
+---
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata:
+  name: {{ $server.authorization.policyName | default (printf "%s-auth" $backendName) }}
+  namespace: {{ $server.namespace | default $defaults.namespace }}
+spec:
+  targetRefs:
+    - group: agentgateway.dev
+      kind: AgentgatewayBackend
+      name: {{ $backendName }}
+  backend:
+    mcp:
+      authorization:
+        action: {{ $server.authorization.action | default "Allow" }}
+        policy:
+          matchExpressions:
+{{- range $server.authorization.matchExpressions }}
+            - {{ . | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

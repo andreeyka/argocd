@@ -1,5 +1,9 @@
 apiVersion: v2
 name: agentgateway-mcp
-description: MCP servers for agentgateway (Multiplex MCP)
+description: MCP servers for agentgateway (supports both Multiplex and Individual endpoints)
 type: application
 version: 0.1.0
+dependencies:
+  - name: agentgateway-library
+    version: "0.1.0"
+    repository: "file://../agentgateway-library"

@@ -1,64 +1,26 @@
-{{- if .Values.mcp.enabled }}
-{{- range .Values.mcp.servers }}
-{{- $server := . }}
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ $server.name }}
-  namespace: {{ $server.namespace | default "agentgateway-system" }}
-  labels:
-    app: {{ $server.name }}
-spec:
-  replicas: {{ $server.replicas | default 1 }}
-  selector:
-    matchLabels:
-      app: {{ $server.name }}
-  template:
-    metadata:
-      labels:
-        app: {{ $server.name }}
-    spec:
-      containers:
-        - name: {{ $server.name }}
-          image: {{ $server.image | default "ia-mcp:latest" }}
-          imagePullPolicy: {{ $server.imagePullPolicy | default "IfNotPresent" }}
-          ports:
-            - containerPort: {{ $server.port | default 8000 }}
-              protocol: TCP
-          {{- if $server.command }}
-          command: {{ $server.command }}
-          {{- end }}
-          {{- if $server.args }}
-          args: {{ $server.args }}
-          {{- end }}
-          {{- if $server.env }}
-          env:
-            {{- range $server.env }}
-            - name: {{ .name }}
-              {{- if .value }}
-              value: {{ .value | quote }}
-              {{- end }}
-              {{- if .valueFrom }}
-              valueFrom:
-                {{- if .valueFrom.secretKeyRef }}
-                secretKeyRef:
-                  name: {{ .valueFrom.secretKeyRef.name }}
-                  key: {{ .valueFrom.secretKeyRef.key }}
-                  {{- if .valueFrom.secretKeyRef.optional }}
-                  optional: {{ .valueFrom.secretKeyRef.optional }}
-                  {{- end }}
-                {{- end }}
-                {{- if .valueFrom.configMapKeyRef }}
-                configMapKeyRef:
-                  name: {{ .valueFrom.configMapKeyRef.name }}
-                  key: {{ .valueFrom.configMapKeyRef.key }}
-                  {{- if .valueFrom.configMapKeyRef.optional }}
-                  optional: {{ .valueFrom.configMapKeyRef.optional }}
-                  {{- end }}
-                {{- end }}
-              {{- end }}
-            {{- end }}
-          {{- end }}
+{{- $defaults := .Values.mcp.defaults }}
+{{- /* Загружаем серверы из файлов */}}
+{{- $multiplexedServers := list }}
+{{- range .Values.mcp.multiplexedServerFiles }}
+{{- $file := printf "instances/multiplexed/%s" . }}
+{{- $serverData := $.Files.Get $file | fromYaml }}
+{{- $multiplexedServers = append $multiplexedServers $serverData }}
 {{- end }}
+{{- $individualServers := list }}
+{{- range .Values.mcp.individualServerFiles }}
+{{- $file := printf "instances/individual/%s" . }}
+{{- $serverData := $.Files.Get $file | fromYaml }}
+{{- $individualServers = append $individualServers $serverData }}
+{{- end }}
+{{- $allServers := list }}
+{{- if .Values.mcp.multiplexed.enabled }}
+{{- $allServers = concat $allServers $multiplexedServers }}
+{{- end }}
+{{- if .Values.mcp.individual.enabled }}
+{{- $allServers = concat $allServers $individualServers }}
+{{- end }}
+{{- range $allServers }}
+{{- $server := mergeOverwrite (deepCopy $defaults) . }}
+{{- $deployment := dict "name" $server.name "namespace" ($server.namespace | default $defaults.namespace) "image" $server.image "imagePullPolicy" $server.imagePullPolicy "port" $server.port "replicas" $server.replicas "env" $server.env "command" $server.command "args" $server.args }}
+{{- include "agentgateway-library.deployment" (dict "name" $server.name "namespace" ($server.namespace | default $defaults.namespace) "deployment" $deployment) }}
 {{- end }}

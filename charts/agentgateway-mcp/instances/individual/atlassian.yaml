@@ -1,0 +1,12 @@
+# MCP Atlassian Server - Jira/Confluence integration
+name: mcp-atlassian
+image: ghcr.io/sooperset/mcp-atlassian:latest
+# === Authorization Policy (опционально) ===
+# Ограничивает доступ к tools на основе JWT claims
+# Документация: https://agentgateway.dev/docs/kubernetes/latest/mcp/tool-access/
+# authorization:
+#   enabled: true
+#   policyName: mcp-atlassian-auth
+#   action: Allow
+#   matchExpressions:
+#     - 'jwt.groups.exists(g, g == "developers")'

@@ -1,0 +1,35 @@
+{{- $defaults := .Values.llm.defaults }}
+{{- /* Загружаем провайдеров из файлов */}}
+{{- $providers := list }}
+{{- range .Values.llm.providerFiles }}
+{{- $file := printf "instances/%s" . }}
+{{- $providerData := $.Files.Get $file | fromYaml }}
+{{- $providers = append $providers $providerData }}
+{{- end }}
+{{- range $providers }}
+{{- $provider := mergeOverwrite (deepCopy $defaults) . }}
+---
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: {{ $provider.backend.name | required "backend.name is required" }}
+  namespace: {{ $provider.backend.namespace | default $defaults.namespace }}
+spec:
+  ai:
+    provider:
+      openai:
+        model: {{ $provider.backend.model | quote }}
+      host: {{ $provider.backend.host | required "backend.host is required" }}
+      port: {{ $provider.backend.port | default $defaults.port }}
+      path: {{ $provider.backend.path | quote }}
+  policies:
+    {{- if $provider.backend.auth }}
+    auth:
+      secretRef:
+        name: {{ $provider.backend.auth.secretRef.name }}
+    {{- end }}
+    {{- if $provider.backend.sni }}
+    tls:
+      sni: {{ $provider.backend.sni }}
+    {{- end }}
+{{- end }}

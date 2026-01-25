@@ -1,9 +1,8 @@
 # Production values for agentgateway-llm
 # Переопределения для production окружения
 llm:
-  cloudru:
-    backend:
-      # В prod окружении рекомендуется использовать Secret для auth
-      auth:
-        secretRef:
-          name: cloudru-secret
+  # Список файлов провайдеров для prod окружения
+  providerFiles:
+    - cloudru.yaml
+  defaults:
+    namespace: agentgateway-system

@@ -1,3 +1,23 @@
 # Переопределения для prod окружения
 mcp:
-  enabled: true
+  # Список файлов серверов для multiplexed режима
+  multiplexedServerFiles:
+    - ia-mcp-1.yaml
+    - ia-mcp-2.yaml
+    - ia-mcp-3.yaml
+  # Список файлов серверов для individual режима
+  individualServerFiles:
+    - playwright.yaml
+    - atlassian.yaml
+    - fetch.yaml
+    - context7.yaml
+  multiplexed:
+    enabled: true
+    # Authorization Policy для Multiplexed Backend
+    # https://agentgateway.dev/docs/kubernetes/latest/mcp/tool-access/
+    authorization:
+      enabled: false
+      # matchExpressions:
+      #   - 'jwt.sub == "alice"'
+  individual:
+    enabled: true

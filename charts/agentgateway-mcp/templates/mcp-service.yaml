@@ -1,26 +1,34 @@
-{{- if .Values.mcp.enabled }}
-{{- range .Values.mcp.servers }}
-{{- $server := . }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ $server.name }}
-  namespace: {{ $server.namespace | default "agentgateway-system" }}
-  labels:
-    app: {{ $server.name }}
-  {{- if $server.mcpPath }}
-  annotations:
-    kgateway.dev/mcp-path: {{ $server.mcpPath }}
-  {{- end }}
-spec:
-  selector:
-    app: {{ $server.name }}
-  type: ClusterIP
-  ports:
-    - protocol: TCP
-      port: {{ $server.port | default 8000 }}
-      targetPort: {{ $server.port | default 8000 }}
-      appProtocol: kgateway.dev/mcp
+{{- $defaults := .Values.mcp.defaults }}
+{{- /* Загружаем серверы из файлов */}}
+{{- $multiplexedServers := list }}
+{{- range .Values.mcp.multiplexedServerFiles }}
+{{- $file := printf "instances/multiplexed/%s" . }}
+{{- $serverData := $.Files.Get $file | fromYaml }}
+{{- $multiplexedServers = append $multiplexedServers $serverData }}
 {{- end }}
+{{- $individualServers := list }}
+{{- range .Values.mcp.individualServerFiles }}
+{{- $file := printf "instances/individual/%s" . }}
+{{- $serverData := $.Files.Get $file | fromYaml }}
+{{- $individualServers = append $individualServers $serverData }}
+{{- end }}
+{{- $allServers := list }}
+{{- if .Values.mcp.multiplexed.enabled }}
+{{- $allServers = concat $allServers $multiplexedServers }}
+{{- end }}
+{{- if .Values.mcp.individual.enabled }}
+{{- $allServers = concat $allServers $individualServers }}
+{{- end }}
+{{- range $allServers }}
+{{- $server := mergeOverwrite (deepCopy $defaults) . }}
+{{- $deployment := dict "name" $server.name "namespace" ($server.namespace | default $defaults.namespace) "image" $server.image "imagePullPolicy" $server.imagePullPolicy "port" $server.port "replicas" $server.replicas "env" $server.env }}
+{{- $serviceDefaults := $defaults.service | default dict }}
+{{- $service := mergeOverwrite (deepCopy $serviceDefaults) ($server.service | default dict) }}
+{{- $service = mergeOverwrite $service (dict "name" ($server.name) "port" ($server.port | default $defaults.port) "targetPort" ($server.port | default $defaults.port)) }}
+{{- if $server.mcpPath }}
+{{- $annotations := $service.annotations | default dict }}
+{{- $annotations = mergeOverwrite $annotations (dict "kgateway.dev/mcp-path" $server.mcpPath) }}
+{{- $service = mergeOverwrite $service (dict "annotations" $annotations) }}
+{{- end }}
+{{- include "agentgateway-library.service" (dict "name" $server.name "namespace" ($server.namespace | default $defaults.namespace) "deployment" $deployment "service" $service) }}
 {{- end }}

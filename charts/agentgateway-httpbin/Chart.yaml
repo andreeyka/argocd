@@ -1,0 +1,6 @@
+apiVersion: v2
+name: agentgateway-httpbin
+description: Simple httpbin service for testing agentgateway routing
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

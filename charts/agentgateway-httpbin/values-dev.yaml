@@ -1,0 +1,4 @@
+# Dev environment values for agentgateway-httpbin
+
+httpbin:
+  enabled: true

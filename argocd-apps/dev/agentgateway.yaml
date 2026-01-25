@@ -9,12 +9,22 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   sources:
-    # Helm chart для контроллера agentgateway (создает GatewayClass и proxy)
-    - repoURL: https://github.com/andreeyka/argocd
-      targetRevision: main
-      path: kgateway
+    # Официальный Helm chart для контроллера agentgateway (создает GatewayClass и proxy)
+    # CRDs устанавливаются отдельным приложением agentgateway-crds-helm из официального чарта
+    - chart: agentgateway
       helm:
-        skipCrds: false
+        # CRDs устанавливаются отдельным приложением agentgateway-crds-helm для:
+        # 1) защиты от каскадного удаления всех CR при удалении release
+        # 2) явного контроля обновлений CRD (Helm не обновляет CRDs по умолчанию)
+        # 3) гарантии порядка установки через sync waves
+        skipCrds: true
+        parameters:
+          - name: controller.image.pullPolicy
+            value: "Always"
+          - name: controller.extraEnv.KGW_ENABLE_GATEWAY_API_EXPERIMENTAL_FEATURES
+            value: "true"
+      repoURL: ghcr.io/kgateway-dev/charts
+      targetRevision: v2.2.0-main
     # Gateway ресурсы из Git
     - repoURL: https://github.com/andreeyka/argocd
       targetRevision: main
@@ -51,6 +61,14 @@ spec:
     - repoURL: https://github.com/andreeyka/argocd
       targetRevision: main
       path: charts/agentgateway-jwt-auth
+      helm:
+        valueFiles:
+          - values.yaml
+          - values-dev.yaml
+    # Тестовый httpbin сервис на / для проверки маршрутизации
+    - repoURL: https://github.com/andreeyka/argocd
+      targetRevision: main
+      path: charts/agentgateway-httpbin
       helm:
         valueFiles:
           - values.yaml

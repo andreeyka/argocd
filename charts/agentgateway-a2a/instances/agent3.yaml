@@ -1,0 +1,15 @@
+# A2A Agent 3 configuration
+name: agent3
+deployment:
+  name: a2a-agent3
+  image: agent-example:latest
+  env:
+    - name: AGENT_NAME
+      value: "a2a-agent3"
+    - name: AGENT_URL
+      value: "http://localhost:8000"
+service:
+  name: a2a-agent3
+route:
+  name: a2a-agent3
+  path: /a2a/agent3

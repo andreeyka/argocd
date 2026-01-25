@@ -2,3 +2,8 @@
 a2a:
   agent:
     enabled: true
+    # Список файлов агентов для prod окружения
+    agentFiles:
+      - agent1.yaml
+      - agent2.yaml
+      - agent3.yaml

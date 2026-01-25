@@ -1,0 +1,25 @@
+# Default values for agentgateway-httpbin
+# Простой тестовый сервис httpbin для проверки маршрутизации через gateway
+
+httpbin:
+  enabled: true
+  name: httpbin
+  namespace: agentgateway-system
+
+  # Настройки Deployment
+  image: kennethreitz/httpbin
+  imagePullPolicy: IfNotPresent
+  replicas: 1
+  port: 80
+
+  # Настройки Service
+  service:
+    port: 80
+    targetPort: 80
+
+  # Настройки HTTPRoute
+  route:
+    path: /
+    gateway:
+      name: agentgateway-proxy
+      namespace: agentgateway-system

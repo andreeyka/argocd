@@ -1,22 +1,19 @@
 {{- if .Values.a2a.agent.enabled }}
-{{- range .Values.a2a.agent.agents }}
-{{- $agent := . }}
-{{- $service := $agent.service | default dict }}
-{{- $deployment := $agent.deployment | default dict }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ $service.name | default (printf "a2a-%s" $agent.name) }}
-  namespace: {{ $service.namespace | default "agentgateway-system" }}
-spec:
-  selector:
-    app: {{ $deployment.name | default (printf "a2a-%s" $agent.name) }}
-  type: ClusterIP
-  ports:
-    - protocol: TCP
-      port: {{ $service.port | default 8000 }}
-      targetPort: {{ $service.targetPort | default 8000 }}
-      appProtocol: kgateway.dev/a2a
+{{- $defaults := .Values.a2a.agent.defaults }}
+{{- /* Загружаем агентов из файлов */}}
+{{- $agents := list }}
+{{- range .Values.a2a.agent.agentFiles }}
+{{- $file := printf "instances/%s" . }}
+{{- $agentData := $.Files.Get $file | fromYaml }}
+{{- $agents = append $agents $agentData }}
+{{- end }}
+{{- range $agents }}
+{{- $agent := mergeOverwrite (deepCopy $defaults) . }}
+{{- $deploymentDefaults := dict "namespace" $defaults.namespace "imagePullPolicy" $defaults.imagePullPolicy "port" $defaults.port "replicas" $defaults.replicas "env" $defaults.env }}
+{{- $deployment := mergeOverwrite (deepCopy $deploymentDefaults) ($agent.deployment | default dict) }}
+{{- $serviceDefaults := $defaults.service | default dict }}
+{{- $service := mergeOverwrite (deepCopy $serviceDefaults) ($agent.service | default dict) }}
+{{- $name := $deployment.name | default (printf "a2a-%s" $agent.name) }}
+{{- include "agentgateway-library.service" (dict "name" $agent.name "namespace" ($deployment.namespace | default $defaults.namespace) "deployment" $deployment "service" $service) }}
 {{- end }}
 {{- end }}

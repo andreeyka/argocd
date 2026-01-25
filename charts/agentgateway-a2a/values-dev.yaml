@@ -1,6 +1,11 @@
 # Переопределения для dev окружения
-# Примечание: Helm не мерджит вложенные структуры, поэтому если нужно переопределить только env,
-# нужно либо указать все поля deployment, либо использовать полное переопределение
 a2a:
   agent:
     enabled: true
+    # Список файлов агентов для dev окружения
+    agentFiles:
+      - agent1.yaml
+      - agent2.yaml
+      - agent3.yaml
+    defaults:
+      namespace: agentgateway-system

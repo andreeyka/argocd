@@ -1,0 +1,3 @@
+# MCP Server 3 for multiplexed mode
+name: ia-mcp-3
+image: ia-mcp:latest

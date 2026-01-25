@@ -7,12 +7,14 @@
 ```text
 .
 ├── argocd-apps/                 # ArgoCD Applications
-│   ├── crds/                    # Общие CRD (Custom Resource Definitions)
-│   │   └── agentgateway-crds-helm.yaml
 │   ├── dev/                     # Development окружение
-│   │   └── agentgateway.yaml
+│   │   ├── agentgateway.yaml    # Основное приложение agentgateway
+│   │   ├── agentgateway-crds.yaml  # CRDs через официальный Helm чарт
+│   │   └── keycloak.yaml
 │   └── prod/                    # Production окружение
-│       └── agentgateway.yaml
+│       ├── agentgateway.yaml    # Основное приложение agentgateway
+│       ├── agentgateway-crds.yaml  # CRDs через официальный Helm чарт
+│       └── keycloak.yaml
 ├── charts/                      # Helm Charts
 │   ├── agentgateway-gateway/    # Gateway чарт
 │   │   ├── Chart.yaml
@@ -24,15 +26,17 @@
 │   └── agentgateway-llm/        # LLM провайдеры чарт
 │       ├── Chart.yaml
 │       ├── templates/
-│       │   ├── cloudru-backend.yaml
-│       │   └── cloudru-httproute.yaml
+│       │   ├── backend.yaml
+│       │   └── httproute.yaml
 │       ├── values.yaml          # Базовые значения
 │       ├── values-dev.yaml      # Переопределения для dev
 │       └── values-prod.yaml     # Переопределения для prod
 ├── scripts/                     # Вспомогательные скрипты
-│   ├── agentgateway-port-forward-all.sh
-│   ├── agentgateway-port-forward-stop.sh
-│   └── install-argocd.sh
+│   ├── install-argocd.sh        # Установка ArgoCD
+│   ├── port-forward.sh          # Запуск всех port-forward'ов
+│   ├── port-forward-stop.sh     # Остановка всех port-forward'ов
+│   ├── setup-keycloak.sh        # Настройка Keycloak
+│   └── test-jwt-auth.sh         # Тест JWT аутентификации
 ├── pyproject.toml               # Python зависимости (uv)
 ├── uv.lock                      # Заблокированные версии зависимостей
 └── README.md
@@ -102,15 +106,23 @@ kubectl port-forward svc/argocd-server -n argocd 9999:443
    - **Username:** `admin`
    - **Password:** `gateway`
 
-### Шаг 3: Установка Agentgateway CRD
+### Шаг 3: Установка Agentgateway CRDs
 
-Установите Custom Resource Definitions для agentgateway:
+Установите Custom Resource Definitions для agentgateway через официальный Helm чарт:
+
+**Для development окружения:**
 
 ```bash
-kubectl apply -f argocd-apps/crds/agentgateway-crds-helm.yaml
+kubectl apply -f argocd-apps/dev/agentgateway-crds.yaml
 ```
 
-Это создаст ArgoCD Application, которое установит Helm чарт `agentgateway-crds` из OCI registry.
+**Для production окружения:**
+
+```bash
+kubectl apply -f argocd-apps/prod/agentgateway-crds.yaml
+```
+
+Это создаст ArgoCD Application, которое установит официальный Helm чарт `agentgateway-crds` из OCI registry `ghcr.io/kgateway-dev/charts` версии `v2.2.0-main`.
 
 ### Шаг 4: Установка Agentgateway
 
@@ -194,12 +206,27 @@ llm:
 
 ## Полезные скрипты
 
+### Установка ArgoCD
+
+Установка ArgoCD и Gateway API CRDs:
+
+```bash
+./scripts/install-argocd.sh
+```
+
+Скрипт выполняет:
+
+- Установку ArgoCD в namespace `argocd`
+- Установку пароля администратора: `gateway`
+- Установку Gateway API CRDs
+- Настройку port-forward для ArgoCD на порт 9999
+
 ### Запуск всех port-forward'ов
 
 Для одновременного запуска всех port-forward'ов (Proxy, Keycloak, UI):
 
 ```bash
-./scripts/agentgateway-port-forward-all.sh
+./scripts/port-forward.sh
 ```
 
 Этот скрипт запустит все port-forward'ы в фоновом режиме:
@@ -213,49 +240,39 @@ llm:
 Для остановки всех port-forward'ов:
 
 ```bash
-./scripts/agentgateway-port-forward-stop.sh
+./scripts/port-forward-stop.sh
 ```
 
-### Получение списка версий Helm чартов
+### Настройка Keycloak
 
-Для получения списка доступных версий Helm чарта из OCI репозитория:
+Настройка Keycloak после развертывания (создание клиента, пользователей, протокол мапперов):
 
 ```bash
-./scripts/list-helm-versions.sh [chart-name] [registry]
+./scripts/setup-keycloak.sh
 ```
 
-Примеры:
+**Примечание:** Перед запуском убедитесь, что port-forward для Keycloak активен (запустите `./scripts/port-forward.sh`).
+
+### Тестирование JWT аутентификации
+
+Тестирование JWT аутентификации на a2a агентах:
 
 ```bash
-# Список версий чарта kgateway из реестра cr.kgateway.dev
-./scripts/list-helm-versions.sh kgateway
-
-# Список версий с указанием полного пути реестра
-./scripts/list-helm-versions.sh kgateway cr.kgateway.dev/kgateway-dev/charts
+./scripts/test-jwt-auth.sh
 ```
 
-Скрипт использует два метода:
-1. **OCI API** - если реестр доступен без аутентификации или после `helm registry login`
-2. **Проверка известных версий** - проверяет доступность популярных версий
+Скрипт проверяет:
 
-**Альтернативные методы:**
+- Доступность Keycloak
+- Получение токена для тестового пользователя
+- Запросы без токена (должны возвращать 401)
+- Запросы с токеном (должны возвращать 200)
 
-Если OCI API требует аутентификацию:
+**Примечание:** Перед запуском убедитесь, что:
 
-```bash
-# Вход в реестр
-helm registry login cr.kgateway.dev
-
-# Получение списка версий через OCI API
-curl -H "Authorization: Bearer $(helm registry token)" \
-  https://cr.kgateway.dev/v2/kgateway-dev/charts/kgateway/tags/list | jq .tags
-```
-
-Проверка конкретной версии:
-
-```bash
-helm show chart oci://cr.kgateway.dev/kgateway-dev/charts/kgateway --version v2.1.2
-```
+1. Keycloak настроен (`./scripts/setup-keycloak.sh`)
+2. Port-forward активен (`./scripts/port-forward.sh`)
+3. AgentgatewayPolicy созданы через Helm чарт `agentgateway-jwt-auth` (управляется ArgoCD)
 
 ## Дополнительная информация
 
@@ -265,11 +282,13 @@ helm show chart oci://cr.kgateway.dev/kgateway-dev/charts/kgateway --version v2.
 
 ## Примечания
 
+- **CRDs устанавливаются через официальный Helm чарт** `agentgateway-crds` из OCI registry `ghcr.io/kgateway-dev/charts`
 - Helm чарты загружаются из OCI registry: `ghcr.io/kgateway-dev/charts`
 - Используемая версия: `v2.2.0-main`
 - Gateway и LLM ресурсы загружаются из Git репозитория: `https://github.com/andreeyka/argocd`
 - Проект поддерживает раздельные конфигурации для dev и prod окружений через отдельные ArgoCD Applications
 - Для управления Python зависимостями используется `uv` (см. `pyproject.toml`)
+- Основное приложение `agentgateway` использует `skipCrds: true`, так как CRDs устанавливаются отдельным приложением `agentgateway-crds-helm`
 - Параметры Helm для development builds:
   - `controller.image.pullPolicy: Always`
   - `controller.extraEnv.KGW_ENABLE_GATEWAY_API_EXPERIMENTAL_FEATURES: true`

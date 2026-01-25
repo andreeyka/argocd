@@ -1,0 +1,5 @@
+# Prod environment values for agentgateway-httpbin
+
+httpbin:
+  # В проде можно отключить тестовый сервис
+  enabled: false

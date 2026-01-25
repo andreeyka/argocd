@@ -1,0 +1,16 @@
+{{- if .Values.httpbin.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.httpbin.name }}
+  namespace: {{ .Values.httpbin.namespace }}
+  labels:
+    app: {{ .Values.httpbin.name }}
+spec:
+  selector:
+    app: {{ .Values.httpbin.name }}
+  ports:
+    - port: {{ .Values.httpbin.service.port }}
+      targetPort: {{ .Values.httpbin.service.targetPort }}
+      protocol: TCP
+{{- end }}

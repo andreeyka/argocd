@@ -1,0 +1,51 @@
+{{- if .Values.mcp.individual.enabled }}
+{{- $defaults := .Values.mcp.defaults }}
+{{- /* Загружаем серверы из файлов */}}
+{{- $individualServers := list }}
+{{- range .Values.mcp.individualServerFiles }}
+{{- $file := printf "instances/individual/%s" . }}
+{{- $serverData := $.Files.Get $file | fromYaml }}
+{{- $individualServers = append $individualServers $serverData }}
+{{- end }}
+{{- range $individualServers }}
+{{- $server := mergeOverwrite (deepCopy $defaults) . }}
+{{- $backendName := $server.backend.name | default $server.name }}
+{{- $routeName := $server.route.name | default $server.name }}
+{{- $routePath := $server.route.path | default (printf "/mcp/%s" $server.name) }}
+---
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: {{ $backendName }}
+  namespace: {{ $server.namespace | default $defaults.namespace }}
+spec:
+  mcp:
+    targets:
+      # Individual MCP: каждый сервер имеет свой Backend с одним target
+      - name: {{ $server.name }}
+        selector:
+          services:
+            matchLabels:
+              app: {{ $server.name }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $routeName }}
+  namespace: {{ $server.namespace | default $defaults.namespace }}
+spec:
+  parentRefs:
+    - name: {{ ($server.route.gateway | default $defaults.gateway).name }}
+      namespace: {{ ($server.route.gateway | default $defaults.gateway).namespace }}
+  rules:
+    # Individual MCP: каждый сервер имеет свой HTTPRoute с уникальным путем
+    - matches:
+        - path:
+            type: PathPrefix
+            value: {{ $routePath | quote }}
+      backendRefs:
+        - name: {{ $backendName }}
+          group: agentgateway.dev
+          kind: AgentgatewayBackend
+{{- end }}
+{{- end }}

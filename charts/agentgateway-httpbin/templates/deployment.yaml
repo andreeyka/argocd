@@ -1,0 +1,25 @@
+{{- if .Values.httpbin.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.httpbin.name }}
+  namespace: {{ .Values.httpbin.namespace }}
+  labels:
+    app: {{ .Values.httpbin.name }}
+spec:
+  replicas: {{ .Values.httpbin.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.httpbin.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.httpbin.name }}
+    spec:
+      containers:
+        - name: {{ .Values.httpbin.name }}
+          image: {{ .Values.httpbin.image }}
+          imagePullPolicy: {{ .Values.httpbin.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.httpbin.port }}
+{{- end }}
