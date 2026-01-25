@@ -5,6 +5,8 @@ name: mcp-context7
 image: ghcr.io/lrstanley/context7-http:latest
 # context7-http слушает на порту 8080 по умолчанию, endpoint /mcp
 port: 8080
+command:
+  - "/app/context7-http"
 args:
   - "--bind-addr"
   - "0.0.0.0:8080"
