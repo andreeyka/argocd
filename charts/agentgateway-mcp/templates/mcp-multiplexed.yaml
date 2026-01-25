@@ -39,12 +39,14 @@ spec:
   rules:
     # Multiplex MCP: один HTTPRoute для всех серверов
     # Все серверы доступны через один путь /mcp
+    # Используем Exact, чтобы не перехватывать /mcp/server-name (individual endpoints)
     - backendRefs:
       - name: {{ .Values.mcp.multiplexed.backend.name }}
         group: agentgateway.dev
         kind: AgentgatewayBackend
       matches:
         - path:
+            type: Exact
             value: {{ .Values.mcp.multiplexed.route.path | default "/mcp" | quote }}
 {{- end }}
 {{- end }}
