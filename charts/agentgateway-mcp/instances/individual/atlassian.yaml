@@ -1,6 +1,13 @@
 # MCP Atlassian Server - Jira/Confluence integration
 name: mcp-atlassian
 image: ghcr.io/sooperset/mcp-atlassian:latest
+# mcp-atlassian требует аргументы командной строки, не поддерживает env vars MCP_TRANSPORT
+args:
+  - "--transport"
+  - "streamable-http"
+  - "--stateless"  # Для Kubernetes: ephemeral session state
+  - "--port"
+  - "8000"
 # === Authorization Policy (опционально) ===
 # Ограничивает доступ к tools на основе JWT claims
 # Документация: https://agentgateway.dev/docs/kubernetes/latest/mcp/tool-access/

@@ -1,5 +1,0 @@
-apiVersion: v2
-name: agentgateway-gateway-api-crds
-description: Gateway API CRDs (v1.4.0) for Kubernetes
-version: 0.1.0
-appVersion: "1.4.0"

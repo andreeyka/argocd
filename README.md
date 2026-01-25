@@ -9,11 +9,9 @@
 ├── argocd-apps/                 # ArgoCD Applications
 │   ├── dev/                     # Development окружение
 │   │   ├── agentgateway.yaml    # Основное приложение agentgateway
-│   │   ├── agentgateway-crds.yaml  # CRDs через официальный Helm чарт
 │   │   └── keycloak.yaml
 │   └── prod/                    # Production окружение
 │       ├── agentgateway.yaml    # Основное приложение agentgateway
-│       ├── agentgateway-crds.yaml  # CRDs через официальный Helm чарт
 │       └── keycloak.yaml
 ├── charts/                      # Helm Charts
 │   ├── agentgateway-gateway/    # Gateway чарт
@@ -32,7 +30,8 @@
 │       ├── values-dev.yaml      # Переопределения для dev
 │       └── values-prod.yaml     # Переопределения для prod
 ├── scripts/                     # Вспомогательные скрипты
-│   ├── install-argocd.sh        # Установка ArgoCD
+│   ├── install-argocd.sh        # Установка ArgoCD (включая CRDs)
+│   ├── install-crds.sh          # Установка CRDs для agentgateway
 │   ├── port-forward.sh          # Запуск всех port-forward'ов
 │   ├── port-forward-stop.sh     # Остановка всех port-forward'ов
 │   ├── setup-keycloak.sh        # Настройка Keycloak
@@ -65,7 +64,7 @@
 - Установку ArgoCD из официальных манифестов
 - Ожидание готовности всех компонентов
 - Установку пароля администратора: `gateway`
-- Установку Gateway API CRD
+- Установку CRDs для agentgateway (Gateway API и Agentgateway CRDs)
 - Настройку port-forward на порт 9999
 
 **Альтернативно вручную:**
@@ -92,11 +91,11 @@ kubectl -n argocd patch secret argocd-secret \
     "admin.passwordMtime": "'$(date +%FT%T%Z)'"
   }}'
 
-# Установка Gateway API CRD
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml
-
 # Port-forward для доступа к UI
 kubectl port-forward svc/argocd-server -n argocd 9999:443
+
+# Установка CRDs (если не установлены автоматически)
+./scripts/install-crds.sh
 ```
 
 ### Шаг 2: Доступ к ArgoCD UI
@@ -108,21 +107,17 @@ kubectl port-forward svc/argocd-server -n argocd 9999:443
 
 ### Шаг 3: Установка Agentgateway CRDs
 
-Установите Custom Resource Definitions для agentgateway через официальный Helm чарт:
-
-**Для development окружения:**
+CRDs устанавливаются автоматически при запуске `install-argocd.sh`. Если ArgoCD уже установлен, установите CRDs отдельно:
 
 ```bash
-kubectl apply -f argocd-apps/dev/agentgateway-crds.yaml
+./scripts/install-crds.sh
 ```
 
-**Для production окружения:**
+Скрипт устанавливает:
+- **Gateway API CRDs (v1.4.0)** - из официального источника Kubernetes SIG
+- **Agentgateway CRDs** - через helm template из официального OCI registry `ghcr.io/kgateway-dev/charts`
 
-```bash
-kubectl apply -f argocd-apps/prod/agentgateway-crds.yaml
-```
-
-Это создаст ArgoCD Application, которое установит официальный Helm чарт `agentgateway-crds` из OCI registry `ghcr.io/kgateway-dev/charts` версии `v2.2.0-main`.
+CRDs устанавливаются один раз при первоначальной настройке кластера и не требуют постоянного управления через ArgoCD.
 
 ### Шаг 4: Установка Agentgateway
 
@@ -169,7 +164,7 @@ agentgateway-helm-6b5bb4db6b-c2pkq   1/1     Running   0          4m4s
 kubectl get gatewayclass agentgateway
 ```
 
-Проверьте статус в ArgoCD UI - оба Application должны иметь статус `Healthy` и `Synced`.
+Проверьте статус в ArgoCD UI - Application должно иметь статус `Healthy` и `Synced`.
 
 ### Шаг 6: Настройка LLM провайдера (опционально)
 
@@ -208,7 +203,7 @@ llm:
 
 ### Установка ArgoCD
 
-Установка ArgoCD и Gateway API CRDs:
+Установка ArgoCD и CRDs для agentgateway:
 
 ```bash
 ./scripts/install-argocd.sh
@@ -218,8 +213,23 @@ llm:
 
 - Установку ArgoCD в namespace `argocd`
 - Установку пароля администратора: `gateway`
-- Установку Gateway API CRDs
+- Установку CRDs для agentgateway (Gateway API и Agentgateway CRDs)
 - Настройку port-forward для ArgoCD на порт 9999
+
+### Установка CRDs
+
+Установка CRDs отдельно (если ArgoCD уже установлен):
+
+```bash
+./scripts/install-crds.sh
+```
+
+Скрипт устанавливает:
+
+- **Gateway API CRDs (v1.4.0)** - из официального источника Kubernetes SIG
+- **Agentgateway CRDs** - через helm template из официального OCI registry
+
+CRDs устанавливаются один раз при первоначальной настройке кластера и не требуют постоянного управления через ArgoCD.
 
 ### Запуск всех port-forward'ов
 
@@ -282,13 +292,15 @@ llm:
 
 ## Примечания
 
-- **CRDs устанавливаются через официальный Helm чарт** `agentgateway-crds` из OCI registry `ghcr.io/kgateway-dev/charts`
+- **CRDs устанавливаются через скрипт** `install-crds.sh` один раз при настройке кластера:
+  - Gateway API CRDs устанавливаются из официального источника Kubernetes SIG
+  - Agentgateway CRDs устанавливаются через helm template из OCI registry `ghcr.io/kgateway-dev/charts`
 - Helm чарты загружаются из OCI registry: `ghcr.io/kgateway-dev/charts`
 - Используемая версия: `v2.2.0-main`
 - Gateway и LLM ресурсы загружаются из Git репозитория: `https://github.com/andreeyka/argocd`
 - Проект поддерживает раздельные конфигурации для dev и prod окружений через отдельные ArgoCD Applications
 - Для управления Python зависимостями используется `uv` (см. `pyproject.toml`)
-- Основное приложение `agentgateway` использует `skipCrds: true`, так как CRDs устанавливаются отдельным приложением `agentgateway-crds-helm`
+- Основное приложение `agentgateway` использует `skipCrds: true`, так как CRDs устанавливаются отдельно через скрипт
 - Параметры Helm для development builds:
   - `controller.image.pullPolicy: Always`
   - `controller.extraEnv.KGW_ENABLE_GATEWAY_API_EXPERIMENTAL_FEATURES: true`

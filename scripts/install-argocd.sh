@@ -185,6 +185,16 @@ echo ""
 echo "✅ ArgoCD успешно установлен и все компоненты развернуты!"
 
 echo ""
+echo "📦 Устанавливаем CRDs для agentgateway..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/install-crds.sh" ]; then
+    "$SCRIPT_DIR/install-crds.sh"
+else
+    echo "⚠️  Скрипт install-crds.sh не найден, пропускаем установку CRDs"
+    echo "   Установите CRDs вручную: ./scripts/install-crds.sh"
+fi
+
+echo ""
 echo "🔌 Настраиваем port-forward для ArgoCD на порт 9999..."
 kubectl -n argocd port-forward svc/argocd-server 9999:443 > /dev/null 2>&1 &
 echo "✅ Port-forward запущен в фоновом режиме. ArgoCD доступен на http://localhost:9999"
