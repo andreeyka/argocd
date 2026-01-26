@@ -1,13 +1,13 @@
-{{- if .Values.mcp.individual.enabled }}
+{{- if .Values.mcp.single.enabled }}
 {{- $defaults := .Values.mcp.defaults }}
 {{- /* Загружаем серверы из файлов */}}
-{{- $individualServers := list }}
-{{- range .Values.mcp.individualServerFiles }}
-{{- $file := printf "instances/individual/%s" . }}
+{{- $singleServers := list }}
+{{- range .Values.mcp.singleServerFiles }}
+{{- $file := printf "instances/single/%s" . }}
 {{- $serverData := $.Files.Get $file | fromYaml }}
-{{- $individualServers = append $individualServers $serverData }}
+{{- $singleServers = append $singleServers $serverData }}
 {{- end }}
-{{- range $individualServers }}
+{{- range $singleServers }}
 {{- $server := mergeOverwrite (deepCopy $defaults) . }}
 {{- $backendName := dig "backend" "name" $server.name $server }}
 {{- $routeName := dig "route" "name" $server.name $server }}
@@ -22,7 +22,7 @@ metadata:
 spec:
   mcp:
     targets:
-      # Individual MCP: каждый сервер имеет свой Backend с одним target
+      # Single MCP: каждый сервер имеет свой Backend с одним target
       - name: {{ $server.name }}
         selector:
           services:
@@ -39,7 +39,7 @@ spec:
     - name: {{ $routeGateway.name }}
       namespace: {{ $routeGateway.namespace }}
   rules:
-    # Individual MCP: каждый сервер имеет свой HTTPRoute с уникальным путем
+    # Single MCP: каждый сервер имеет свой HTTPRoute с уникальным путем
     # Используем Exact для точного совпадения пути
     - matches:
         - path:

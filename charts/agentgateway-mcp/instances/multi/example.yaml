@@ -1,0 +1,247 @@
+# ============================================================================
+# ПРИМЕР КОНФИГУРАЦИИ ДЛЯ MULTI РЕЖИМА
+# ============================================================================
+# Этот файл содержит пример всех доступных переменных для настройки
+# MCP сервера в режиме Multi (все серверы за одним endpoint /mcp).
+# 
+# Для использования скопируйте этот файл и переименуйте, например:
+#   cp example.yaml my-server.yaml
+# Затем добавьте имя файла в values-dev.yaml или values-prod.yaml:
+#   multiServerFiles:
+#     - my-server.yaml
+# 
+# ВАЖНО: В Multi режиме все серверы объединяются в один Backend.
+# Инструменты от разных серверов доступны с префиксом имени сервера.
+# Например: my-server_tool-name, another-server_tool-name
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# ОБЯЗАТЕЛЬНЫЕ ПАРАМЕТРЫ
+# ----------------------------------------------------------------------------
+
+# Имя MCP сервера (обязательно)
+# Используется для создания Deployment и Service
+# Также используется как префикс для инструментов (например: my-server_tool-name)
+# Должно быть уникальным в рамках namespace
+name: my-mcp-server
+
+# Docker образ для контейнера (обязательно)
+# Может быть из любого registry (Docker Hub, GHCR, и т.д.)
+image: ghcr.io/example/mcp-server:latest
+
+# ----------------------------------------------------------------------------
+# ОСНОВНЫЕ НАСТРОЙКИ
+# ----------------------------------------------------------------------------
+
+# Namespace для создания ресурсов
+# По умолчанию: agentgateway-system (из mcp.defaults.namespace)
+namespace: agentgateway-system
+
+# Политика загрузки образа
+# Возможные значения: Always, IfNotPresent, Never
+# По умолчанию: Always (из mcp.defaults.imagePullPolicy)
+imagePullPolicy: IfNotPresent
+
+# Порт контейнера, на котором слушает MCP сервер
+# По умолчанию: 8000 (из mcp.defaults.port)
+port: 8000
+
+# Количество реплик Deployment
+# По умолчанию: 1 (из mcp.defaults.replicas)
+replicas: 1
+
+# ----------------------------------------------------------------------------
+# ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ
+# ----------------------------------------------------------------------------
+
+# Массив переменных окружения для контейнера
+# По умолчанию добавляются: MCP_HOST=0.0.0.0, MCP_TRANSPORT=streamable-http, COLUMNS=200
+# Можно переопределить или добавить свои
+env:
+  # Простая переменная со значением
+  - name: MCP_HOST
+    value: "0.0.0.0"
+  
+  # Переменная из Secret
+  - name: API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: my-secret
+        key: api-key
+        optional: false  # true, если ключ может отсутствовать
+  
+  # Переменная из ConfigMap
+  - name: CONFIG_VALUE
+    valueFrom:
+      configMapKeyRef:
+        name: my-configmap
+        key: config-key
+        optional: false
+
+# ----------------------------------------------------------------------------
+# КОМАНДА И АРГУМЕНТЫ
+# ----------------------------------------------------------------------------
+
+# Команда запуска контейнера (опционально)
+# Если не указана, используется CMD из образа
+command:
+  - "/app/my-server"
+
+# Аргументы команды (опционально)
+# Если не указаны, используются ARGS из образа
+# ВАЖНО: Для Multi режима обязательно использовать streamable-http транспорт
+args:
+  - "--transport"
+  - "streamable-http"
+  - "--host"
+  - "0.0.0.0"
+  - "--port"
+  - "8000"
+
+# ----------------------------------------------------------------------------
+# РЕСУРСЫ (CPU, ПАМЯТЬ)
+# ----------------------------------------------------------------------------
+
+# Ограничения и запросы ресурсов для контейнера
+resources:
+  requests:
+    cpu: "100m"      # Минимальный запрос CPU (0.1 ядра)
+    memory: "128Mi"  # Минимальный запрос памяти
+  limits:
+    cpu: "500m"      # Максимальный лимит CPU (0.5 ядра)
+    memory: "512Mi"  # Максимальный лимит памяти
+
+# ----------------------------------------------------------------------------
+# МЕТКИ (LABELS)
+# ----------------------------------------------------------------------------
+
+# Метки для Deployment
+labels:
+  app.kubernetes.io/component: mcp-server
+  app.kubernetes.io/version: "1.0.0"
+
+# Метки для Pod
+podLabels:
+  app.kubernetes.io/part-of: agentgateway
+
+# ----------------------------------------------------------------------------
+# НАСТРОЙКИ SERVICE
+# ----------------------------------------------------------------------------
+
+service:
+  # Имя Service (по умолчанию = name)
+  name: my-mcp-server
+  
+  # Namespace для Service (по умолчанию = namespace)
+  namespace: agentgateway-system
+  
+  # Тип Service
+  # Возможные значения: ClusterIP, NodePort, LoadBalancer, ExternalName
+  # По умолчанию: ClusterIP
+  type: ClusterIP
+  
+  # Порт Service (по умолчанию = port)
+  port: 8000
+  
+  # Целевой порт контейнера (по умолчанию = port)
+  targetPort: 8000
+  
+  # Метки для Service
+  labels:
+    app.kubernetes.io/component: mcp-server
+  
+  # Аннотации для Service
+  annotations:
+    description: "MCP Server Service"
+  
+  # Протокол приложения для MCP
+  # По умолчанию: kgateway.dev/mcp (из mcp.defaults.service.appProtocol)
+  appProtocol: kgateway.dev/mcp
+
+# ----------------------------------------------------------------------------
+# MCP ENDPOINT PATH
+# ----------------------------------------------------------------------------
+
+# Путь MCP endpoint на самом сервере внутри контейнера (опционально)
+# Используется для настройки аннотации kgateway.dev/mcp-path в Service
+# По умолчанию: /mcp (для streamable-http транспорта)
+# 
+# ВАЖНО: В Multi режиме каждый сервер может иметь свой mcpPath!
+# Это связано с тем, что каждый сервер имеет свой Service, и аннотация
+# настраивается индивидуально для каждого сервера.
+# 
+# Примеры использования:
+# - Если MCP сервер слушает на стандартном пути /mcp - можно не указывать
+# - Если MCP сервер слушает на другом пути (например, /api/mcp) - укажите его здесь
+# - Если разные серверы в Multi режиме используют разные пути - каждый может указать свой
+# 
+# Эта аннотация используется agentgateway для правильной маршрутизации запросов
+# к MCP endpoint внутри контейнера сервера.
+mcpPath: /mcp
+
+# ----------------------------------------------------------------------------
+# BACKEND И ROUTE (НЕ ПОДДЕРЖИВАЮТСЯ В INSTANCE ФАЙЛАХ)
+# ----------------------------------------------------------------------------
+
+# ВАЖНО: Backend и HTTPRoute НЕ настраиваются в instance файлах для Multi режима!
+# 
+# Это связано с тем, что в Multi режиме все серверы объединены в один Backend
+# и используют один общий HTTPRoute.
+# 
+# Настройка Backend и HTTPRoute для Multi режима:
+# 1. Откройте values.yaml, values-dev.yaml или values-prod.yaml
+# 2. Найдите секцию mcp.multi.backend и mcp.multi.route
+# 3. Настройте параметры:
+#    mcp:
+#      multi:
+#        backend:
+#          name: mcp-multi
+#          namespace: agentgateway-system
+#        route:
+#          name: mcp
+#          namespace: agentgateway-system
+#          path: /mcp
+#          gateway:
+#            name: agentgateway-proxy
+#            namespace: agentgateway-system
+
+# ----------------------------------------------------------------------------
+# AUTHORIZATION POLICY (НЕ ПОДДЕРЖИВАЕТСЯ В INSTANCE ФАЙЛАХ)
+# ----------------------------------------------------------------------------
+
+# ВАЖНО: Authorization Policy НЕ настраивается в instance файлах для Multi режима!
+# 
+# Это связано с тем, что в Multi режиме все серверы объединены в один Backend,
+# поэтому политика авторизации настраивается глобально для всего Backend.
+# 
+# Настройка Authorization Policy для Multi режима:
+# 1. Откройте values.yaml, values-dev.yaml или values-prod.yaml
+# 2. Найдите секцию mcp.multi.authorization
+# 3. Включите и настройте политику:
+#    mcp:
+#      multi:
+#        authorization:
+#          enabled: true
+#          policyName: mcp-multi-auth
+#          action: Allow
+#          matchExpressions:
+#            - 'mcp.tool.name == "get_me"'
+#            - 'jwt.sub == "alice"'
+# 
+# Документация: https://agentgateway.dev/docs/kubernetes/latest/mcp/tool-access/
+
+# ----------------------------------------------------------------------------
+# ПРИМЕЧАНИЯ ДЛЯ MULTI РЕЖИМА
+# ----------------------------------------------------------------------------
+
+# В Multi режиме:
+# - Все серверы объединяются в один Backend (настраивается в values.yaml: mcp.multi.backend)
+#   НЕ настраивается в instance файлах!
+# - Все серверы доступны через один HTTPRoute (настраивается в values.yaml: mcp.multi.route)
+#   НЕ настраивается в instance файлах!
+# - Инструменты от разных серверов доступны с префиксом имени сервера
+#   Например: my-server_tool-name, another-server_another-tool
+# - Authorization Policy настраивается глобально для всего Backend в values.yaml
+#   (mcp.multi.authorization), а НЕ в instance файлах
+# - Поддерживается только streamable-http транспорт (SSE не поддерживается)
+# - Документация: https://agentgateway.dev/docs/kubernetes/latest/mcp/multiplex/

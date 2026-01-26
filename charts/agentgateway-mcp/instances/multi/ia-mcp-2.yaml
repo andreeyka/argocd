@@ -1,3 +1,3 @@
-# MCP Server 2 for multiplexed mode
+# MCP Server 2 for multi mode
 name: ia-mcp-2
 image: ia-mcp:latest

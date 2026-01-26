@@ -1,4 +1,4 @@
-# MCP Server 1 for multiplexed mode
+# MCP Server 1 for multi mode
 name: ia-mcp-1
 image: ia-mcp:latest
 # Путь MCP endpoint на самом сервере (опционально, по умолчанию /mcp для streamable-http)

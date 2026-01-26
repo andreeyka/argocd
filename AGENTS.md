@@ -89,8 +89,8 @@ charts/
 │   ├── templates/
 │   └── instances/                 # Instance configurations (for multi-instance deployments)
 │       ├── *.yaml                 # Simple: agent1.yaml, cloudru.yaml
-│       ├── individual/            # MCP: individual servers (each gets own endpoint)
-│       └── multiplexed/           # MCP: multiplexed servers (all behind /mcp)
+│       ├── single/                # MCP: single servers (each gets own endpoint)
+│       └── multi/                 # MCP: multi servers (all behind /mcp)
 
 argocd-apps/
 ├── dev/                           # Development environment
@@ -117,7 +117,7 @@ scripts/
 - **Instances**: Use descriptive names in `instances/` directory with .yaml extension
   - A2A agents: `instances/agent1.yaml`, `instances/agent2.yaml`
   - LLM providers: `instances/cloudru.yaml`
-  - MCP servers: `instances/individual/*.yaml` (separate endpoints) or `instances/multiplexed/*.yaml` (shared /mcp endpoint)
+  - MCP servers: `instances/single/*.yaml` (separate endpoints) or `instances/multi/*.yaml` (shared /mcp endpoint)
 
 ### Helm Chart Values Structure
 
@@ -160,8 +160,8 @@ scripts/
 4. **Port management**: Use consistent port allocation across components (default: 8000)
 5. **Gateway references**: Use `agentgateway-proxy` as default gateway reference
 6. **MCP deployment modes**:
-   - **Individual**: Each server gets own endpoint (`/mcp/server-name`) via `instances/individual/`
-   - **Multiplexed**: All servers share one endpoint (`/mcp`) via `instances/multiplexed/`, tools prefixed with server name
+   - **Single**: Each server gets own endpoint (`/mcp/server-name`) via `instances/single/`
+   - **Multi**: All servers share one endpoint (`/mcp`) via `instances/multi/`, tools prefixed with server name
 
 ### Testing Strategy
 

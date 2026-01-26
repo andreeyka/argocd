@@ -1,23 +1,23 @@
 {{- $defaults := .Values.mcp.defaults }}
 {{- /* Загружаем серверы из файлов */}}
-{{- $multiplexedServers := list }}
-{{- range .Values.mcp.multiplexedServerFiles }}
-{{- $file := printf "instances/multiplexed/%s" . }}
+{{- $multiServers := list }}
+{{- range .Values.mcp.multiServerFiles }}
+{{- $file := printf "instances/multi/%s" . }}
 {{- $serverData := $.Files.Get $file | fromYaml }}
-{{- $multiplexedServers = append $multiplexedServers $serverData }}
+{{- $multiServers = append $multiServers $serverData }}
 {{- end }}
-{{- $individualServers := list }}
-{{- range .Values.mcp.individualServerFiles }}
-{{- $file := printf "instances/individual/%s" . }}
+{{- $singleServers := list }}
+{{- range .Values.mcp.singleServerFiles }}
+{{- $file := printf "instances/single/%s" . }}
 {{- $serverData := $.Files.Get $file | fromYaml }}
-{{- $individualServers = append $individualServers $serverData }}
+{{- $singleServers = append $singleServers $serverData }}
 {{- end }}
 {{- $allServers := list }}
-{{- if .Values.mcp.multiplexed.enabled }}
-{{- $allServers = concat $allServers $multiplexedServers }}
+{{- if .Values.mcp.multi.enabled }}
+{{- $allServers = concat $allServers $multiServers }}
 {{- end }}
-{{- if .Values.mcp.individual.enabled }}
-{{- $allServers = concat $allServers $individualServers }}
+{{- if .Values.mcp.single.enabled }}
+{{- $allServers = concat $allServers $singleServers }}
 {{- end }}
 {{- range $allServers }}
 {{- $server := mergeOverwrite (deepCopy $defaults) . }}

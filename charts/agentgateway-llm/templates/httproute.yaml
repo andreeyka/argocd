@@ -21,7 +21,7 @@ spec:
   rules:
     - matches:
         - path:
-            type: PathPrefix
+            type: Exact
             value: {{ $provider.route.path | quote }}
       filters:
         - type: URLRewrite

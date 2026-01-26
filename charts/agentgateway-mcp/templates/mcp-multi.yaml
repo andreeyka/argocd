@@ -1,0 +1,52 @@
+{{- if .Values.mcp.multi.enabled }}
+{{- /* Загружаем серверы из файлов */}}
+{{- $multiServers := list }}
+{{- range .Values.mcp.multiServerFiles }}
+{{- $file := printf "instances/multi/%s" . }}
+{{- $serverData := $.Files.Get $file | fromYaml }}
+{{- $multiServers = append $multiServers $serverData }}
+{{- end }}
+{{- if $multiServers }}
+---
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: {{ .Values.mcp.multi.backend.name }}
+  namespace: {{ .Values.mcp.multi.backend.namespace | default .Values.mcp.defaults.namespace }}
+spec:
+  mcp:
+    targets:
+      {{- range $multiServers }}
+      # Multi MCP: каждый сервер создает свой target в одном Backend
+      # Все серверы доступны через один endpoint /mcp
+      # Инструменты будут доступны с префиксом имени сервера (например: ia-mcp-1_tool-name)
+      - name: {{ .name }}
+        selector:
+          services:
+            matchLabels:
+              app: {{ .name }}
+      {{- end }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ .Values.mcp.multi.route.name }}
+  namespace: {{ .Values.mcp.multi.route.namespace | default .Values.mcp.defaults.namespace }}
+spec:
+  parentRefs:
+    - name: {{ (.Values.mcp.multi.route.gateway | default .Values.mcp.defaults.gateway).name }}
+      namespace: {{ (.Values.mcp.multi.route.gateway | default .Values.mcp.defaults.gateway).namespace }}
+  rules:
+    # Multi MCP: один HTTPRoute для всех серверов
+    # Все серверы доступны через один путь /mcp
+    # Используем Exact, чтобы не перехватывать /mcp/server-name (single endpoints)
+    - backendRefs:
+      - name: {{ .Values.mcp.multi.backend.name }}
+        group: agentgateway.dev
+        kind: AgentgatewayBackend
+      matches:
+        - path:
+            type: Exact
+            value: {{ .Values.mcp.multi.route.path | default "/mcp" | quote }}
+{{- end }}
+{{- end }}
