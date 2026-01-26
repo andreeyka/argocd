@@ -14,14 +14,14 @@
 │       ├── agentgateway.yaml    # Основное приложение agentgateway
 │       └── keycloak.yaml
 ├── charts/                      # Helm Charts
-│   ├── agentgateway-gateway/    # Gateway чарт
+│   ├── agentgateway/             # Gateway чарт
 │   │   ├── Chart.yaml
 │   │   ├── templates/
-│   │   │   └── agentgateway-proxy.yaml
+│   │   │   └── gateway.yaml
 │   │   ├── values.yaml          # Базовые значения
 │   │   ├── values-dev.yaml      # Переопределения для dev
 │   │   └── values-prod.yaml     # Переопределения для prod
-│   └── agentgateway-llm/        # LLM провайдеры чарт
+│   └── llm/                     # LLM провайдеры чарт
 │       ├── Chart.yaml
 │       ├── templates/
 │       │   ├── backend.yaml
@@ -186,8 +186,8 @@ EOF
 
 Затем обновите соответствующий файл values для вашего окружения:
 
-- Для dev: `charts/agentgateway-llm/values-dev.yaml`
-- Для prod: `charts/agentgateway-llm/values-prod.yaml`
+- Для dev: `charts/llm/values-dev.yaml`
+- Для prod: `charts/llm/values-prod.yaml`
 
 Раскомментируйте секцию `auth`:
 
@@ -283,7 +283,7 @@ CRDs устанавливаются один раз при первоначал�
 
 1. Keycloak настроен (`./scripts/setup-keycloak.sh`)
 2. Port-forward активен (`./scripts/port-forward.sh`)
-3. AgentgatewayPolicy созданы через Helm чарт `agentgateway-jwt-auth` (управляется ArgoCD)
+3. AgentgatewayPolicy созданы через Helm чарт `jwt-auth` (управляется ArgoCD)
 
 ## Дополнительная информация
 

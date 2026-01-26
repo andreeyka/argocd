@@ -1,4 +1,4 @@
-# Default values for agentgateway-gateway
+# Default values for agentgateway chart
 gateway:
   name: agentgateway-proxy
   namespace: agentgateway-system

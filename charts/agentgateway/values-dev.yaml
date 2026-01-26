@@ -1,2 +1,2 @@
-# Development values for agentgateway-gateway
+# Development values for gateway chart
 # В dev окружении используются значения по умолчанию из values.yaml

@@ -15,18 +15,17 @@ helm template agentgateway-crds oci://ghcr.io/kgateway-dev/charts/agentgateway-c
   --version v2.2.0-main --skip-crds=false | kubectl apply -f -
 
 # Test a single Helm chart locally
-helm install test-release ./charts/agentgateway-gateway --dry-run --debug
-helm template test-release ./charts/agentgateway-gateway --values ./charts/agentgateway-gateway/values-dev.yaml
+helm install test-release ./charts/agentgateway --dry-run --debug
+helm template test-release ./charts/agentgateway --values ./charts/agentgateway/values-dev.yaml
 
-# Lint Helm charts (library chart can be linted but won't produce output)
-helm lint ./charts/agentgateway-gateway
-helm lint ./charts/agentgateway-a2a
-helm lint ./charts/agentgateway-mcp
-helm lint ./charts/agentgateway-llm
-helm lint ./charts/agentgateway-jwt-auth
-helm lint ./charts/agentgateway-keycloak
-helm lint ./charts/agentgateway-httpbin
-helm lint ./charts/agentgateway-library
+# Lint Helm charts
+helm lint ./charts/agentgateway
+helm lint ./charts/a2a
+helm lint ./charts/mcp
+helm lint ./charts/llm
+helm lint ./charts/jwt-auth
+helm lint ./charts/keycloak
+helm lint ./charts/httpbin
 
 # Validate Kubernetes manifests
 kubectl apply --dry-run=client -f argocd-apps/dev/
@@ -68,25 +67,24 @@ uv sync  # Install dependencies if needed
   - Use `{{- if }}` with proper hyphen placement to control whitespace
   - Use `default` function for optional values with sensible defaults
   - Use `required` function for mandatory fields to catch errors early
-  - Template naming convention: `agentgateway-library.<resource_name>`
-  - Library chart templates are prefixed with underscores (`_deployment.tpl`, `_service.tpl`, `_httproute.tpl`)
 
 ### File Organization
 
 ```text
 charts/
-├── agentgateway-library/          # Reusable templates (library chart)
-│   ├── Chart.yaml
-│   └── templates/
-│       ├── _deployment.tpl        # Deployment template
-│       ├── _service.tpl           # Service template
-│       └── _httproute.tpl         # HTTPRoute template
-├── agentgateway-<component>/      # Component charts
+├── <component>/                   # Component charts (a2a, agentgateway, mcp, llm, jwt-auth, keycloak, httpbin)
 │   ├── Chart.yaml
 │   ├── values.yaml                # Base values
 │   ├── values-dev.yaml            # Development overrides
 │   ├── values-prod.yaml           # Production overrides
 │   ├── templates/
+│   │   ├── deployment.yaml        # Standard template files (resource type only)
+│   │   ├── service.yaml
+│   │   ├── httproute.yaml
+│   │   ├── route-single.yaml      # Special routes (MCP single endpoint mode)
+│   │   ├── route-multi.yaml       # Special routes (MCP multi endpoint mode)
+│   │   ├── deployment-postgres.yaml # Multiple components: use suffix (deployment-<component>)
+│   │   └── service-postgres.yaml
 │   └── instances/                 # Instance configurations (for multi-instance deployments)
 │       ├── *.yaml                 # Simple: agent1.yaml, cloudru.yaml
 │       ├── single/                # MCP: single servers (each gets own endpoint)
@@ -111,10 +109,15 @@ scripts/
 
 ### Naming Conventions
 
-- **Chart Names**: `agentgateway-<component>` (e.g., `agentgateway-gateway`, `agentgateway-a2a`)
+- **Chart Directories**: `<component>` (e.g., `a2a`, `agentgateway`, `mcp`, `llm`, `jwt-auth`, `keycloak`, `httpbin`)
+  - No `agentgateway-` prefix in directory names (all charts are in `charts/` directory)
+- **Chart Names in Chart.yaml**: May keep `agentgateway-<component>` prefix for uniqueness in Helm repository
+- **Template Files**: `<resource-type>.yaml` (e.g., `deployment.yaml`, `service.yaml`, `httproute.yaml`)
+  - **Exception 1**: Multiple components in one chart use suffix: `deployment-postgres.yaml`, `service-postgres.yaml`
+  - **Exception 2**: Special route configurations: `route-single.yaml`, `route-multi.yaml` (MCP modes)
 - **Resources**: Use kebab-case for Kubernetes resource names
 - **Values**: Use snake_case for value keys in values.yaml
-- **Instances**: Use descriptive names in `instances/` directory with .yaml extension
+- **Instances**: Use descriptive names in `instances/` directory with .yaml extension (no component prefix)
   - A2A agents: `instances/agent1.yaml`, `instances/agent2.yaml`
   - LLM providers: `instances/cloudru.yaml`
   - MCP servers: `instances/single/*.yaml` (separate endpoints) or `instances/multi/*.yaml` (shared /mcp endpoint)
@@ -128,7 +131,6 @@ scripts/
 
 ### Template Patterns
 
-- **Library includes**: Use `{{- include "agentgateway-library.template-name" (dict "param1" value1 "param2" value2) }}`
 - **Merging configurations**: Use `mergeOverwrite` and `deepCopy` for combining defaults with instance configs
 - **Conditional resources**: Wrap entire templates in `{{- if .Values.component.enabled }}`
 - **File loading**: Use `{{- $file := printf "instances/%s" . }}` and `{{- $data := $.Files.Get $file | fromYaml }}`
@@ -143,7 +145,7 @@ scripts/
 ### Security Best Practices
 
 - **Secrets**: Use Kubernetes Secrets with `stringData` for sensitive values
-- **Authentication**: JWT authentication policies configure via `agentgateway-jwt-auth` chart
+- **Authentication**: JWT authentication policies configure via `jwt-auth` chart
 - **Namespace isolation**: Use consistent namespace naming across environments
 
 ### Documentation
@@ -156,8 +158,7 @@ scripts/
 
 1. **Multi-instance deployments**: Use `instances/` directory with individual YAML files
 2. **Environment overrides**: Maintain separate value files for dev/prod environments
-3. **Library templates**: Leverage `agentgateway-library` for consistent resource creation
-4. **Port management**: Use consistent port allocation across components (default: 8000)
+3. **Port management**: Use consistent port allocation across components (default: 8000)
 5. **Gateway references**: Use `agentgateway-proxy` as default gateway reference
 6. **MCP deployment modes**:
    - **Single**: Each server gets own endpoint (`/mcp/server-name`) via `instances/single/`

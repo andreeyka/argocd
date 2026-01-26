@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: https://github.com/andreeyka/argocd
     targetRevision: main
-    path: charts/agentgateway-keycloak
+    path: charts/keycloak
     helm:
       valueFiles:
         - values.yaml

@@ -1,5 +1,0 @@
-apiVersion: v2
-name: agentgateway-library
-description: Library chart with reusable templates for agentgateway components
-type: library
-version: 0.1.0

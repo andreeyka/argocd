@@ -19,7 +19,7 @@ spec:
     # Gateway ресурсы из Git
     - repoURL: https://github.com/andreeyka/argocd
       targetRevision: main
-      path: charts/agentgateway-gateway
+      path: charts/agentgateway
       helm:
         valueFiles:
           - values.yaml
@@ -27,7 +27,7 @@ spec:
     # LLM ресурсы из Git
     - repoURL: https://github.com/andreeyka/argocd
       targetRevision: main
-      path: charts/agentgateway-llm
+      path: charts/llm
       helm:
         valueFiles:
           - values.yaml
@@ -35,7 +35,7 @@ spec:
     # A2A агент из Git
     - repoURL: https://github.com/andreeyka/argocd
       targetRevision: main
-      path: charts/agentgateway-a2a
+      path: charts/a2a
       helm:
         valueFiles:
           - values.yaml
@@ -43,7 +43,7 @@ spec:
     # MCP серверы из Git
     - repoURL: https://github.com/andreeyka/argocd
       targetRevision: main
-      path: charts/agentgateway-mcp
+      path: charts/mcp
       helm:
         valueFiles:
           - values.yaml
@@ -51,7 +51,7 @@ spec:
     # JWT аутентификация из Git
     - repoURL: https://github.com/andreeyka/argocd
       targetRevision: main
-      path: charts/agentgateway-jwt-auth
+      path: charts/jwt-auth
       helm:
         valueFiles:
           - values.yaml
